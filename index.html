@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Atlantis Helm Chart</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .feature {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature h3 {
+            margin: 0 0 0.5rem 0;
+            color: #667eea;
+        }
+        .cta {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0.5rem;
+            font-weight: 500;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .code {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Enhanced Atlantis Helm Chart</h1>
+        <p>Production-ready wrapper with Argo Rollouts, intelligent storage, and enterprise features</p>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>🔄 Argo Rollouts</h3>
+            <p>Blue-Green, Canary, and Rolling Update deployment strategies for zero-downtime deployments.</p>
+        </div>
+        <div class="feature">
+            <h3>💾 Intelligent Storage</h3>
+            <p>Auto EBS/EFS selection based on replica count. Single replica uses EBS, multi-replica uses EFS.</p>
+        </div>
+        <div class="feature">
+            <h3>📈 Enhanced Monitoring</h3>
+            <p>ServiceMonitor for Prometheus integration with platform-agnostic health checks.</p>
+        </div>
+        <div class="feature">
+            <h3>🛡️ High Availability</h3>
+            <p>PodDisruptionBudget support and multi-replica validation for production workloads.</p>
+        </div>
+        <div class="feature">
+            <h3>🌐 Official Chart Base</h3>
+            <p>Built on official Atlantis chart v5.24.1 with full compatibility and community updates.</p>
+        </div>
+        <div class="feature">
+            <h3>🔧 Enterprise Ready</h3>
+            <p>Multi-git provider support, AWS credentials, RBAC, and advanced configuration options.</p>
+        </div>
+    </div>
+
+    <div class="cta">
+        <h2>Get Started</h2>
+        <div class="code">
+# Add Helm repository<br>
+helm repo add k8sforge-atlantis https://k8sforge.github.io/atlantis-chart<br><br>
+# Install Atlantis<br>
+helm install my-atlantis k8sforge-atlantis/atlantis \<br>
+&nbsp;&nbsp;--set orgAllowlist="github.com/myorg/*" \<br>
+&nbsp;&nbsp;--set github.user="myuser" \<br>
+&nbsp;&nbsp;--set github.token="mytoken"
+        </div>
+        <a href="https://github.com/k8sforge/atlantis-chart" class="btn">📚 View Documentation</a>
+        <a href="https://github.com/k8sforge/atlantis-chart/blob/main/EXAMPLES.md" class="btn">💡 Examples</a>
+        <a href="https://github.com/k8sforge/atlantis-chart/releases" class="btn">📦 Releases</a>
+    </div>
+
+    <div class="footer">
+        <p>🏗️ Built with ❤️ by <a href="https://github.com/k8sforge" style="color: #667eea;">k8sforge</a></p>
+        <p><a href="https://www.runatlantis.io/" style="color: #667eea;">Official Atlantis</a> | <a href="https://github.com/k8sforge/atlantis-chart/blob/main/LICENSE" style="color: #667eea;">Apache 2.0 License</a></p>
+    </div>
+</body>
+</html>

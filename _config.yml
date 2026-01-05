@@ -1,0 +1,71 @@
+# GitHub Pages Jekyll Configuration
+title: "Enhanced Atlantis Helm Chart"
+description: "Production-ready wrapper around the official Atlantis chart with enterprise features"
+url: "https://k8sforge.github.io"
+baseurl: "/atlantis-chart"
+
+# Theme
+theme: minima
+remote_theme: pages-themes/minimal@v0.2.0
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Markdown
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+
+# Navigation
+header_pages:
+  - README.md
+
+# Social
+github_username: k8sforge
+repository: k8sforge/atlantis-chart
+
+# SEO
+author:
+  name: k8sforge
+  email: contact@k8sforge.com
+
+social:
+  name: k8sforge
+  links:
+    - https://github.com/k8sforge
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - README.md
