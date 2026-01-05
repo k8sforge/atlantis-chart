@@ -1,0 +1,69 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+{{- /* Auto-select storage configuration based on replica count */}}
+{{- $replicaCount := .Values.replicaCount | int }}
+{{- $storageClass := "" }}
+{{- $accessMode := "" }}
+{{- $size := "" }}
+
+{{- if .Values.persistence.storageClass }}
+  {{/* User specified exact storageClass - use as-is */}}
+  {{- $storageClass = .Values.persistence.storageClass }}
+{{- else }}
+  {{/* Auto-select based on replica count */}}
+  {{- if eq $replicaCount 1 }}
+    {{- $storageClass = .Values.persistence.ebs.storageClass }}
+  {{- else }}
+    {{- $storageClass = .Values.persistence.efs.storageClass }}
+  {{- end }}
+{{- end }}
+
+{{- if .Values.persistence.size }}
+  {{/* User specified exact size - use as-is */}}
+  {{- $size = .Values.persistence.size }}
+{{- else }}
+  {{/* Auto-select based on replica count */}}
+  {{- if eq $replicaCount 1 }}
+    {{- $size = .Values.persistence.ebs.size }}
+  {{- else }}
+    {{- $size = .Values.persistence.efs.size }}
+  {{- end }}
+{{- end }}
+
+{{- if .Values.persistence.accessModes }}
+  {{/* User specified exact accessModes - use as-is */}}
+{{- else }}
+  {{/* Auto-select based on replica count */}}
+  {{- if eq $replicaCount 1 }}
+    {{- $accessMode = "ReadWriteOnce" }}
+  {{- else }}
+    {{- $accessMode = "ReadWriteMany" }}
+  {{- end }}
+{{- end }}
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "atlantis.fullname" . }}-data
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- if .Values.persistence.accessModes }}
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- else }}
+    - {{ $accessMode | quote }}
+    {{- end }}
+  {{- if $storageClass }}
+  {{- if (hasPrefix "-" $storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ $storageClass | quote }}
+  {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $size | quote }}
+{{- end }}
+

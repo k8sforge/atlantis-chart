@@ -1,0 +1,228 @@
+# Enhanced Atlantis Helm Chart - Wrapper Configuration
+# This chart wraps the official Atlantis chart with enterprise enhancements:
+# - Argo Rollouts support (Blue-Green, Canary, Rolling Update)
+# - Intelligent storage selection (EBS/EFS based on replica count)
+# - Enhanced monitoring (ServiceMonitor, health checks)
+# - High availability (PodDisruptionBudget)
+
+#################################
+# ENHANCED FEATURES (TOP LEVEL) #
+#################################
+
+# Enhanced deployment configuration with Argo Rollouts support
+deployment:
+  # Type: "deployment" for official chart Deployment, "rollout" for Argo Rollouts
+  type: deployment  # Default to official chart, set to "rollout" for enhancements
+  # Strategy: "rollingUpdate", "blueGreen", or "canary" (only used if type == rollout)
+  strategy: blueGreen
+  # Rolling update strategy configuration
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
+  # Blue-green strategy configuration (only used if strategy == blueGreen)
+  autoPromotionEnabled: false
+  scaleDownDelaySeconds: 30
+  # Canary strategy configuration (only used if strategy == canary)
+  canary:
+    steps:
+      - setWeight: 20
+      - pause: {}
+      - setWeight: 40
+      - pause: { duration: 10s }
+      - setWeight: 60
+      - pause: { duration: 10s }
+      - setWeight: 80
+      - pause: { duration: 10s }
+    analysis: {}
+    trafficRouting: {}
+
+# Enhanced monitoring and observability
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: "30s"
+    scrapeTimeout: "10s"
+    labels: {}
+
+# High availability configuration
+podDisruptionBudget:
+  enabled: false
+  # Specify either minAvailable OR maxUnavailable (not both)
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Enhanced persistent storage with auto-selection
+# Automatically selects storage type based on replica count:
+# - replicaCount = 1: Uses EBS (ReadWriteOnce) for optimal performance
+# - replicaCount > 1: Uses EFS (ReadWriteMany) for shared access
+persistence:
+  enabled: false
+  # EBS configuration (for single replica)
+  ebs:
+    storageClass: "gp3"  # AWS EBS storage class
+    size: 10Gi
+  # EFS configuration (for multi-replica)
+  efs:
+    storageClass: "efs-sc"  # AWS EFS storage class
+    size: 50Gi  # EFS typically needs more space since it's shared
+  # Manual overrides (optional - disables auto-selection when set)
+  storageClass: ""  # Override: specify exact storage class
+  size: ""          # Override: specify exact size
+  accessModes: []   # Override: specify exact access modes
+  # Optional: existing claim name (bypasses all auto-selection)
+  existingClaim: ""
+
+#################################################
+# OFFICIAL CHART CONFIGURATION (PASS-THROUGH) #
+#################################################
+
+# All configuration below is passed through to the official Atlantis chart
+# This follows the official chart's values.yaml structure exactly
+
+# Replace this with your own repo allowlist
+orgAllowlist: "github.com/myorg/*"
+
+# Atlantis URL (if not using ingress)
+atlantisUrl: ""
+
+# Log level: debug, info, warn, or error
+logLevel: "info"
+
+# GitHub configuration
+github: {}
+# github:
+#   user: myuser
+#   token: mytoken
+#   secret: mysecret
+
+# GitHub App configuration (alternative to user/token)
+githubApp: {}
+# githubApp:
+#   id: 123456
+#   slug: myapp
+#   key: |
+#     -----BEGIN PRIVATE KEY-----
+#     ...
+#     -----END PRIVATE KEY-----
+
+# Image configuration
+image:
+  repository: runatlantis/atlantis
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Replica count (affects storage auto-selection)
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 4141
+  targetPort: 4141
+  loadBalancerIP: null
+
+# Ingress configuration
+ingress:
+  enabled: false
+  ingressClassName: ""
+  annotations: {}
+  path: /
+  pathType: Prefix
+  host: atlantis.example.com
+  tls: []
+
+# Resource limits and requests
+resources:
+  limits:
+    memory: 1Gi
+    cpu: 100m
+  requests:
+    memory: 512Mi
+    cpu: 100m
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Security context
+securityContext: {}
+
+# Pod security context
+podSecurityContext: {}
+
+# Service account
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+# Environment variables
+environmentSecrets: []
+environment: {}
+
+# Container command
+command: []
+
+# Data storage (handled by our enhanced persistence above when enabled)
+dataStorage:
+  enabled: false
+
+# Liveness probe
+livenessProbe:
+  enabled: true
+  periodSeconds: 60
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
+  scheme: HTTP
+  path: /healthz
+
+# Readiness probe
+readinessProbe:
+  enabled: true
+  periodSeconds: 60
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
+  scheme: HTTP
+  path: /healthz
+
+# Volume mounts
+volumeClaim: []
+
+# Additional volumes
+extraVolumes: []
+extraVolumeMounts: []
+
+# Init containers
+initContainers: []
+
+# Extra containers
+extraContainers: []
+
+# Stateful set configuration
+statefulSet:
+  enabled: false
+
+# Disable default PDB from official chart (we provide enhanced version)
+disruptionBudget:
+  enabled: false

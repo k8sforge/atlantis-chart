@@ -1,0 +1,25 @@
+{
+  "recommendations": [
+    // Kubernetes & Helm support
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+
+    // YAML support
+    "redhat.vscode-yaml",
+
+    // Markdown
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+
+    // Shell/Bash
+    "timonwong.shellcheck",
+    "mads-hartmann.bash-ide-vscode",
+
+    // Git
+    "eamodio.gitlens",
+
+    // General
+    "editorconfig.editorconfig",
+    "ms-vscode.vscode-json"
+  ],
+  "unwantedRecommendations": []
+}

@@ -1,0 +1,19 @@
+name: Chart Releaser
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "charts/**/Chart.yaml"
+      - "charts/**/values.yaml"
+      - "charts/**/templates/**"
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  chart-releaser:
+    uses: actionsforge/actions/.github/workflows/chart-releaser.yml@main
+    secrets:
+      cr_token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,17 @@
+{{- if and (eq .Values.deployment.type "rollout") (eq .Values.deployment.strategy "blueGreen") }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "atlantis.fullname" . }}-preview
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "atlantis.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 4141
+      protocol: TCP
+      name: http
+{{- end }}

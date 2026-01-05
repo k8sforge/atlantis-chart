@@ -1,0 +1,110 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.trimAutoWhitespace": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.rulers": [80, 120],
+  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrapColumn": 120,
+
+  // YAML settings
+  "yaml.schemas": {
+    "https://json.schemastore.org/kubernetes.json": [
+      "templates/*.yaml",
+      "templates/*.yml"
+    ]
+  },
+  "yaml.schemaStore.enable": true,
+  // Exclude templates from YAML extension validation completely
+  "yaml.validate": true,
+  "yaml.customTags": [
+    "!Ref",
+    "!Sub",
+    "!GetAtt",
+    "!FindInMap",
+    "!Join",
+    "!Select",
+    "!Split",
+    "!If",
+    "!Equals",
+    "!Not",
+    "!And",
+    "!Or"
+  ],
+  "yaml.format.enable": true,
+  "yaml.format.singleQuote": false,
+  "yaml.format.bracketSpacing": true,
+  "yaml.format.printWidth": 80,
+  "yaml.format.proseWrap": "preserve",
+  "yaml.hover": true,
+  "yaml.completion": true,
+
+  // Editor settings
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.formatOnSave": false,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "yaml.format.bracketSpacing": true
+  },
+  "[plaintext]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "davidanson.vscode-markdownlint",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+  },
+  "[shellscript]": {
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+
+  "files.associations": {
+    "templates/*.yaml": "helm",
+    "templates/*.yml": "helm",
+    "templates/_helpers.tpl": "helm",
+    "*.yaml": "yaml",
+    "*.yml": "yaml",
+    "Chart.yaml": "yaml",
+    "values.yaml": "yaml"
+  },
+
+  // Files to exclude from search
+  "search.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.DS_Store": true
+  },
+
+  // Files to exclude from file watcher
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true
+  },
+
+  // Kubernetes specific
+  "vs-kubernetes": {
+    "vs-kubernetes.helm-path": "",
+    "vs-kubernetes.kubectl-path": "",
+    "vs-kubernetes.kustomize-path": ""
+  }
+}
