@@ -1,6 +1,6 @@
 # Atlantis Helm Chart
 
-![Auto Tag Release](https://github.com/k8sforge/atlantis-charts/actions/workflows/auto-tag.yml/badge.svg) ![Helm Chart Release](https://github.com/k8sforge/atlantis-charts/actions/workflows/release.yml/badge.svg) ![Helm Chart Page Release](https://github.com/k8sforge/atlantis-charts/actions/workflows/release-pages.yml/badge.svg)
+![Chart Releaser](https://github.com/k8sforge/atlantis-chart/actions/workflows/chart-releaser.yml/badge.svg)
 
 An **enhanced wrapper** around the [official Atlantis Helm chart](https://github.com/runatlantis/helm-charts) that adds enterprise-grade features for production deployments. Atlantis automates Terraform workflows through pull requests.
 
