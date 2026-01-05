@@ -1,0 +1,26 @@
+name: YAML Lint
+
+on:
+  pull_request:
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - ".github/workflows/yaml-lint.yml"
+  workflow_call:
+
+jobs:
+  lint:
+    name: Lint YAML files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run yamllint
+        uses: karancode/yamllint-github-action@v2.1.0
+        with:
+          yamllint_file_or_dir: .
+          yamllint_config_filepath: .yamllint
+          yamllint_format: github
+          yamllint_strict: false

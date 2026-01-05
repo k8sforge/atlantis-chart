@@ -1,0 +1,5 @@
+# Chart Releaser configuration
+# This config tells cr to skip release checks when using packages-with-index
+owner: k8sforge
+git-repo: atlantis-chart
+packages-with-index: true

@@ -1,0 +1,48 @@
+{{- if eq .Values.deployment.type "rollout" }}
+{{- include "atlantis.validatePersistence" . }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "atlantis.fullname" . }}
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "atlantis.selectorLabels" . | nindent 6 }}
+  template:
+    {{- include "atlantis.rolloutPodTemplate" . | nindent 4 }}
+  {{- if or (eq .Values.deployment.strategy "rollingUpdate") (eq .Values.deployment.strategy "blueGreen") (eq .Values.deployment.strategy "canary") }}
+  strategy:
+    {{- if eq .Values.deployment.strategy "rollingUpdate" }}
+    rollingUpdate:
+      {{- if .Values.deployment.rollingUpdate.maxSurge }}
+      maxSurge: {{ .Values.deployment.rollingUpdate.maxSurge | quote }}
+      {{- end }}
+      {{- if .Values.deployment.rollingUpdate.maxUnavailable }}
+      maxUnavailable: {{ .Values.deployment.rollingUpdate.maxUnavailable | quote }}
+      {{- end }}
+    {{- else if eq .Values.deployment.strategy "blueGreen" }}
+    blueGreen:
+      activeService: {{ include "atlantis.fullname" . }}
+      previewService: {{ include "atlantis.fullname" . }}-preview
+      autoPromotionEnabled: {{ .Values.deployment.autoPromotionEnabled }}
+      scaleDownDelaySeconds: {{ .Values.deployment.scaleDownDelaySeconds }}
+    {{- else if eq .Values.deployment.strategy "canary" }}
+    canary:
+      {{- if .Values.deployment.canary.steps }}
+      steps:
+        {{- toYaml .Values.deployment.canary.steps | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.canary.analysis }}
+      analysis:
+        {{- toYaml .Values.deployment.canary.analysis | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.canary.trafficRouting }}
+      trafficRouting:
+        {{- toYaml .Values.deployment.canary.trafficRouting | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

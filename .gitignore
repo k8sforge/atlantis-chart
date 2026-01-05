@@ -1,0 +1,23 @@
+# Secrets (never commit!)
+**/secret.yaml
+**/secrets.yaml
+*.pem
+*.key
+
+# Helm
+*.tgz
+# charts/ is now tracked, so don't ignore it
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log

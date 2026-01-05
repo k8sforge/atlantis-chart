@@ -1,0 +1,15 @@
+name: Chart Lint and Validate
+
+on:
+  pull_request:
+    paths:
+      - "charts/**/Chart.yaml"
+      - "charts/**/values.yaml"
+      - "charts/**/templates/**"
+  workflow_call:
+
+jobs:
+  helm-lint-validate:
+    uses: actionsforge/actions/.github/workflows/chart-lint-validate.yml@main
+    with:
+      chart_dirs: "./charts/atlantis"
