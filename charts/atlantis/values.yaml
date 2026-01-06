@@ -242,16 +242,15 @@ atlantisConfig:
     enabled: false
 
 ####################################################################
-# FILTERED VALUES FOR OFFICIAL ATLANTIS CHART (AUTO-GENERATED)   #
+# OFFICIAL ATLANTIS CHART VALUES (MINIMAL COMPATIBLE)            #
 ####################################################################
 
-# The 'atlantis:' section contains filtered and transformed values that are
-# compatible with the official Atlantis chart schema. These values are
-# automatically generated from the atlantisConfig: section above.
-# DO NOT EDIT THESE VALUES DIRECTLY - they will be overridden by the wrapper.
+# The 'atlantis:' section contains minimal values compatible with the official
+# Atlantis chart schema. Only essential, compatible properties are included.
+# Enhanced features are configured in the atlantisConfig: section above.
 
 atlantis:
-  # Basic configuration (compatible with official chart)
+  # Core configuration
   orgAllowlist: "github.com/myorg/*"
   atlantisUrl: ""
   logLevel: "info"
@@ -262,7 +261,7 @@ atlantis:
     tag: latest
     pullPolicy: IfNotPresent
 
-  # Replica count (conditionally set based on deployment type)
+  # Replica count (conditionally overridden based on deployment type)
   replicaCount: 1
 
   # Service configuration
@@ -284,11 +283,11 @@ atlantis:
       memory: 512Mi
       cpu: 100m
 
-  # Environment variables (empty by default)
+  # Environment variables (can be overridden by user)
   environment: {}
   environmentSecrets: []
 
-  # Data storage (string format for official chart)
+  # Data storage (STRING format required by official chart)
   dataStorage: ""
 
   # Service account
@@ -297,7 +296,7 @@ atlantis:
     annotations: {}
     name: ""
 
-  # Basic probe configuration (without enhanced properties)
+  # Basic probe configuration (official chart compatible)
   livenessProbe:
     enabled: true
     periodSeconds: 60
@@ -314,11 +313,6 @@ atlantis:
     successThreshold: 1
     failureThreshold: 5
 
-  # Volume configuration
-  volumeClaim: []
-  extraVolumes: []
-  extraVolumeMounts: []
-
   # Container configuration
   initContainers: []
   extraContainers: []
@@ -329,10 +323,17 @@ atlantis:
   tolerations: []
   affinity: {}
 
-  # StatefulSet configuration
-  statefulSet:
-    enabled: false
+  # Volume configuration
+  extraVolumes: []
+  extraVolumeMounts: []
 
-  # Disruption budget (disabled - wrapper provides enhanced version)
+  # Disruption budget (disabled - wrapper provides enhanced PDB)
   disruptionBudget:
     enabled: false
+
+  # REMOVED PROPERTIES (incompatible with official chart):
+  # - volumeClaim (array format issues)
+  # - statefulSet (not supported)
+  # - podLabels, podAnnotations (not supported)
+  # - podSecurityContext, securityContext (not supported)
+  # - enhanced probe properties (path, scheme)

@@ -423,13 +423,14 @@ command:
 {{- end }}
 
 # TRANSFORM: dataStorage object → string for official chart compatibility
+# CRITICAL: Official chart expects dataStorage as a STRING, not object
+{{- $dataStorageValue := "" }}
 {{- if .Values.atlantisConfig.dataStorage }}
-{{- if .Values.atlantisConfig.dataStorage.enabled }}
-dataStorage: {{ .Values.atlantisConfig.dataStorage.size | default "10Gi" | quote }}
-{{- else }}
-dataStorage: ""
+  {{- if and .Values.atlantisConfig.dataStorage.enabled .Values.atlantisConfig.dataStorage.size }}
+    {{- $dataStorageValue = .Values.atlantisConfig.dataStorage.size }}
+  {{- end }}
 {{- end }}
-{{- end }}
+dataStorage: {{ $dataStorageValue | quote }}
 
 # Probes - filter out enhanced properties, keep only official chart compatible ones
 {{- if .Values.atlantisConfig.livenessProbe }}
@@ -451,11 +452,7 @@ readinessProbe:
   failureThreshold: {{ .Values.atlantisConfig.readinessProbe.failureThreshold }}
 {{- end }}
 
-# Volume configuration - pass as-is
-{{- if .Values.atlantisConfig.volumeClaim }}
-volumeClaim:
-{{- toYaml .Values.atlantisConfig.volumeClaim | nindent 2 }}
-{{- end }}
+# Volume configuration - only pass supported properties
 {{- if .Values.atlantisConfig.extraVolumes }}
 extraVolumes:
 {{- toYaml .Values.atlantisConfig.extraVolumes | nindent 2 }}
@@ -465,7 +462,7 @@ extraVolumeMounts:
 {{- toYaml .Values.atlantisConfig.extraVolumeMounts | nindent 2 }}
 {{- end }}
 
-# Container configuration - pass as-is
+# Container configuration - only pass supported properties
 {{- if .Values.atlantisConfig.initContainers }}
 initContainers:
 {{- toYaml .Values.atlantisConfig.initContainers | nindent 2 }}
@@ -475,17 +472,10 @@ extraContainers:
 {{- toYaml .Values.atlantisConfig.extraContainers | nindent 2 }}
 {{- end }}
 
-# StatefulSet - pass as-is
-{{- if .Values.atlantisConfig.statefulSet }}
-statefulSet:
-{{- toYaml .Values.atlantisConfig.statefulSet | nindent 2 }}
-{{- end }}
-
-# Disruption budget - pass as-is (wrapper provides enhanced version)
-{{- if .Values.atlantisConfig.disruptionBudget }}
-disruptionBudget:
-{{- toYaml .Values.atlantisConfig.disruptionBudget | nindent 2 }}
-{{- end }}
+# EXCLUDED PROPERTIES (not supported by official chart):
+# - volumeClaim: Array format not compatible with official chart
+# - statefulSet: Not supported by official Atlantis chart
+# - disruptionBudget: Wrapper provides enhanced PDB instead
 
 # EXCLUDE: These properties are used only by wrapper templates
 # - podLabels (not supported by official chart)
@@ -564,5 +554,80 @@ Validates persistence configuration for compatibility
 {{- fail "ERROR: Single replica deployment with persistence requires EBS storage. Set persistence.ebs.storageClass or persistence.storageClass." }}
 {{- end }}
 {{- end }}
+{{- end }}
+
+{{/*
+Validation helper for transformation output
+Ensures that subchart values are properly formatted and compatible
+*/}}
+{{- define "atlantis.validateTransformation" -}}
+{{/* Validate dataStorage is always a string */}}
+{{- if .Values.atlantis.dataStorage }}
+  {{- if not (kindIs "string" .Values.atlantis.dataStorage) }}
+    {{- fail "ERROR: atlantis.dataStorage must be a string value for official chart compatibility. Current type is not string." }}
+  {{- end }}
+{{- end }}
+
+{{/* Validate no double-nesting in atlantis section */}}
+{{- if .Values.atlantis.atlantis }}
+  {{- fail "ERROR: Double-nesting detected (atlantis.atlantis.*). Check value transformation logic for nested atlantis keys." }}
+{{- end }}
+
+{{/* Validate unsupported properties are not present */}}
+{{- if .Values.atlantis.podLabels }}
+  {{- fail "ERROR: atlantis.podLabels should not be passed to official chart. Use atlantisConfig.podLabels instead." }}
+{{- end }}
+{{- if .Values.atlantis.podAnnotations }}
+  {{- fail "ERROR: atlantis.podAnnotations should not be passed to official chart. Use atlantisConfig.podAnnotations instead." }}
+{{- end }}
+{{- if .Values.atlantis.podSecurityContext }}
+  {{- fail "ERROR: atlantis.podSecurityContext should not be passed to official chart. Use atlantisConfig.podSecurityContext instead." }}
+{{- end }}
+{{- if .Values.atlantis.securityContext }}
+  {{- fail "ERROR: atlantis.securityContext should not be passed to official chart. Use atlantisConfig.securityContext instead." }}
+{{- end }}
+{{- if .Values.atlantis.statefulSet }}
+  {{- fail "ERROR: atlantis.statefulSet should not be passed to official chart. Property not supported by official chart." }}
+{{- end }}
+
+{{/* Validate environment variables are properly typed */}}
+{{- if .Values.atlantis.environment }}
+  {{- if not (kindIs "map" .Values.atlantis.environment) }}
+    {{- fail "ERROR: atlantis.environment must be a map/object of key-value pairs." }}
+  {{- end }}
+  {{- range $key, $value := .Values.atlantis.environment }}
+    {{- if not (kindIs "string" $value) }}
+      {{- fail (printf "ERROR: atlantis.environment.%s must be a string value. Current value: %v" $key $value) }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{/* Validate replica count is an integer */}}
+{{- if .Values.atlantis.replicaCount }}
+  {{- if not (kindIs "float64" .Values.atlantis.replicaCount) }}
+    {{- fail "ERROR: atlantis.replicaCount must be an integer value." }}
+  {{- end }}
+  {{- if lt (.Values.atlantis.replicaCount | int) 0 }}
+    {{- fail "ERROR: atlantis.replicaCount must be non-negative." }}
+  {{- end }}
+{{- end }}
+
+{{/* Validate service port is an integer */}}
+{{- if and .Values.atlantis.service .Values.atlantis.service.port }}
+  {{- if not (kindIs "float64" .Values.atlantis.service.port) }}
+    {{- fail "ERROR: atlantis.service.port must be an integer value." }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Validation helper for overall chart configuration
+Runs all validations to ensure proper configuration
+*/}}
+{{- define "atlantis.validateAll" -}}
+{{- include "atlantis.validateSubchartCompatibility" . }}
+{{- include "atlantis.validateDeploymentType" . }}
+{{- include "atlantis.validateEnhancedStorage" . }}
+{{- include "atlantis.validateTransformation" . }}
 {{- end }}
 
