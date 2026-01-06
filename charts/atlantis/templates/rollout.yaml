@@ -1,7 +1,6 @@
 {{- if eq .Values.deployment.type "rollout" }}
 {{- include "atlantis.validatePersistence" . }}
-{{- include "atlantis.validateDeploymentType" . }}
-{{- include "atlantis.validateEnhancedStorage" . }}
+{{- include "atlantis.validateAll" . }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:

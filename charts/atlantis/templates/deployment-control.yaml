@@ -13,10 +13,8 @@ When deployment.type == "deployment":
 - Our Rollout resource is not created (handled by rollout.yaml template)
 */}}
 
-{{/* Run compatibility validations */}}
-{{- include "atlantis.validateSubchartCompatibility" . }}
-{{- include "atlantis.validateDeploymentType" . }}
-{{- include "atlantis.validateEnhancedStorage" . }}
+{{/* Run comprehensive validations */}}
+{{- include "atlantis.validateAll" . }}
 
 {{- if eq .Values.deployment.type "rollout" }}
 ---

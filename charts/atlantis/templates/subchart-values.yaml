@@ -1,0 +1,57 @@
+{{/*
+Dynamic Subchart Value Override
+This template ensures that when using the official chart deployment mode,
+the subchart receives properly filtered and transformed values.
+*/}}
+
+{{- if eq .Values.deployment.type "deployment" }}
+{{/*
+When using standard deployment mode, we need to ensure the official chart
+receives compatible values. This template validates and applies the transformation.
+*/}}
+
+{{/* Apply comprehensive validation first */}}
+{{- include "atlantis.validateAll" . }}
+
+{{/*
+Note: In Helm, subchart values are automatically passed from the parent chart's
+values.yaml under the subchart name key (atlantis:). This template serves as
+a validation and documentation point for the value transformation process.
+
+The actual value transformation is applied in the values.yaml atlantis: section
+which should contain only compatible, filtered values.
+*/}}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "atlantis.fullname" . }}-subchart-info
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+data:
+  deployment-mode: "deployment"
+  subchart-values: "filtered"
+  transformation-applied: "true"
+  note: |
+    This chart is using the official Atlantis chart in deployment mode.
+    Values are filtered and transformed for compatibility.
+    Enhanced features are provided by the wrapper chart.
+
+{{- else }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "atlantis.fullname" . }}-subchart-info
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+data:
+  deployment-mode: "rollout"
+  subchart-values: "disabled"
+  transformation-applied: "n/a"
+  note: |
+    This chart is using Argo Rollouts for deployment.
+    The official Atlantis chart deployment is disabled (replicas=0).
+    All pod management is handled by the wrapper chart's Rollout resource.
+{{- end }}
