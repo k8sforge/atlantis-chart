@@ -80,11 +80,11 @@ persistence:
 # OFFICIAL ATLANTIS CHART CONFIGURATION (PASS-THROUGH) #
 ##########################################################
 
-# All values under the 'atlantis:' key are passed directly to the official
-# Atlantis chart dependency. This enables proper value pass-through while
-# keeping our enhanced features at the top level.
+# The 'atlantisConfig:' section contains the enhanced configuration used by
+# wrapper templates. These values are filtered and transformed before being
+# passed to the official Atlantis chart dependency via the 'atlantis:' section.
 
-atlantis:
+atlantisConfig:
   # Replace this with your own repo allowlist
   orgAllowlist: "github.com/myorg/*"
 
@@ -238,5 +238,101 @@ atlantis:
     enabled: false
 
   # Disable default PDB from official chart (we provide enhanced version)
+  disruptionBudget:
+    enabled: false
+
+####################################################################
+# FILTERED VALUES FOR OFFICIAL ATLANTIS CHART (AUTO-GENERATED)   #
+####################################################################
+
+# The 'atlantis:' section contains filtered and transformed values that are
+# compatible with the official Atlantis chart schema. These values are
+# automatically generated from the atlantisConfig: section above.
+# DO NOT EDIT THESE VALUES DIRECTLY - they will be overridden by the wrapper.
+
+atlantis:
+  # Basic configuration (compatible with official chart)
+  orgAllowlist: "github.com/myorg/*"
+  atlantisUrl: ""
+  logLevel: "info"
+
+  # Image configuration
+  image:
+    repository: runatlantis/atlantis
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Replica count (conditionally set based on deployment type)
+  replicaCount: 1
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 4141
+    targetPort: 4141
+
+  # Ingress (disabled by default)
+  ingress:
+    enabled: false
+
+  # Resources
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 100m
+    requests:
+      memory: 512Mi
+      cpu: 100m
+
+  # Environment variables (empty by default)
+  environment: {}
+  environmentSecrets: []
+
+  # Data storage (string format for official chart)
+  dataStorage: ""
+
+  # Service account
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+  # Basic probe configuration (without enhanced properties)
+  livenessProbe:
+    enabled: true
+    periodSeconds: 60
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+
+  readinessProbe:
+    enabled: true
+    periodSeconds: 60
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+
+  # Volume configuration
+  volumeClaim: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  # Container configuration
+  initContainers: []
+  extraContainers: []
+  command: []
+
+  # Node scheduling
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # StatefulSet configuration
+  statefulSet:
+    enabled: false
+
+  # Disruption budget (disabled - wrapper provides enhanced version)
   disruptionBudget:
     enabled: false

@@ -13,6 +13,11 @@ When deployment.type == "deployment":
 - Our Rollout resource is not created (handled by rollout.yaml template)
 */}}
 
+{{/* Run compatibility validations */}}
+{{- include "atlantis.validateSubchartCompatibility" . }}
+{{- include "atlantis.validateDeploymentType" . }}
+{{- include "atlantis.validateEnhancedStorage" . }}
+
 {{- if eq .Values.deployment.type "rollout" }}
 ---
 # When using Rollouts, we need to disable the official chart's deployment
