@@ -242,98 +242,18 @@ atlantisConfig:
     enabled: false
 
 ####################################################################
-# OFFICIAL ATLANTIS CHART VALUES (MINIMAL COMPATIBLE)            #
+# OFFICIAL ATLANTIS CHART VALUES (DYNAMIC - DO NOT EDIT)         #
 ####################################################################
 
-# The 'atlantis:' section contains minimal values compatible with the official
-# Atlantis chart schema. Only essential, compatible properties are included.
-# Enhanced features are configured in the atlantisConfig: section above.
+# The 'atlantis:' section contains minimal default values that are dynamically
+# populated by the value transformation system. These values will be overridden
+# at render time with properly filtered values from atlantisConfig: section.
+#
+# WARNING: Do not manually edit these values - they will be replaced by
+# the transformation helper during chart rendering.
 
 atlantis:
-  # Core configuration
-  orgAllowlist: "github.com/myorg/*"
-  atlantisUrl: ""
-  logLevel: "info"
-
-  # Image configuration
-  image:
-    repository: runatlantis/atlantis
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  # Replica count (conditionally overridden based on deployment type)
-  replicaCount: 1
-
-  # Service configuration
-  service:
-    type: ClusterIP
-    port: 4141
-    targetPort: 4141
-
-  # Ingress (disabled by default)
-  ingress:
-    enabled: false
-
-  # Resources
-  resources:
-    limits:
-      memory: 1Gi
-      cpu: 100m
-    requests:
-      memory: 512Mi
-      cpu: 100m
-
-  # Environment variables (can be overridden by user)
-  environment: {}
-  environmentSecrets: []
-
-  # Data storage (STRING format required by official chart)
+  # Minimal required defaults - will be overridden by transformation
+  orgAllowlist: ""
   dataStorage: ""
-
-  # Service account
-  serviceAccount:
-    create: true
-    annotations: {}
-    name: ""
-
-  # Basic probe configuration (official chart compatible)
-  livenessProbe:
-    enabled: true
-    periodSeconds: 60
-    initialDelaySeconds: 5
-    timeoutSeconds: 5
-    successThreshold: 1
-    failureThreshold: 5
-
-  readinessProbe:
-    enabled: true
-    periodSeconds: 60
-    initialDelaySeconds: 5
-    timeoutSeconds: 5
-    successThreshold: 1
-    failureThreshold: 5
-
-  # Container configuration
-  initContainers: []
-  extraContainers: []
-  command: []
-
-  # Node scheduling
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
-  # Volume configuration
-  extraVolumes: []
-  extraVolumeMounts: []
-
-  # Disruption budget (disabled - wrapper provides enhanced PDB)
-  disruptionBudget:
-    enabled: false
-
-  # REMOVED PROPERTIES (incompatible with official chart):
-  # - volumeClaim (array format issues)
-  # - statefulSet (not supported)
-  # - podLabels, podAnnotations (not supported)
-  # - podSecurityContext, securityContext (not supported)
-  # - enhanced probe properties (path, scheme)
+  replicaCount: 1

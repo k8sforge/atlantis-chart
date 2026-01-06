@@ -1,57 +1,62 @@
 {{/*
 Dynamic Subchart Value Override
-This template ensures that when using the official chart deployment mode,
-the subchart receives properly filtered and transformed values.
+This template applies the value transformation to ensure the subchart
+receives properly filtered and compatible values from atlantisConfig.
 */}}
 
-{{- if eq .Values.deployment.type "deployment" }}
-{{/*
-When using standard deployment mode, we need to ensure the official chart
-receives compatible values. This template validates and applies the transformation.
-*/}}
-
-{{/* Apply comprehensive validation first */}}
+{{/* CRITICAL: Apply validation first before transformation */}}
 {{- include "atlantis.validateAll" . }}
 
 {{/*
-Note: In Helm, subchart values are automatically passed from the parent chart's
-values.yaml under the subchart name key (atlantis:). This template serves as
-a validation and documentation point for the value transformation process.
-
-The actual value transformation is applied in the values.yaml atlantis: section
-which should contain only compatible, filtered values.
+CORE TRANSFORMATION: Apply the official chart values transformation
+and override the static atlantis: section with filtered, compatible values.
+This is the key mechanism that makes the value pass-through work correctly.
 */}}
+{{- $transformedValues := include "atlantis.officialChartValues" . | fromYaml }}
+{{- $_ := set .Values "atlantis" $transformedValues }}
 
+{{/*
+VALIDATION: Ensure the transformation was applied correctly
+and the resulting values are compatible with the official chart.
+*/}}
+{{- include "atlantis.validateTransformation" . }}
+
+{{- if eq .Values.deployment.type "deployment" }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "atlantis.fullname" . }}-subchart-info
+  name: {{ include "atlantis.fullname" . }}-transformation-debug
   labels:
     {{- include "atlantis.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
 data:
   deployment-mode: "deployment"
-  subchart-values: "filtered"
   transformation-applied: "true"
+  transformed-values.yaml: |
+    # Values passed to official Atlantis subchart
+    {{- toYaml .Values.atlantis | nindent 4 }}
   note: |
-    This chart is using the official Atlantis chart in deployment mode.
-    Values are filtered and transformed for compatibility.
-    Enhanced features are provided by the wrapper chart.
+    Transformation successfully applied. The atlantis: section now contains
+    filtered values compatible with the official Atlantis chart schema.
 
 {{- else }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "atlantis.fullname" . }}-subchart-info
+  name: {{ include "atlantis.fullname" . }}-transformation-debug
   labels:
     {{- include "atlantis.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
 data:
   deployment-mode: "rollout"
-  subchart-values: "disabled"
-  transformation-applied: "n/a"
+  transformation-applied: "skipped"
   note: |
-    This chart is using Argo Rollouts for deployment.
-    The official Atlantis chart deployment is disabled (replicas=0).
-    All pod management is handled by the wrapper chart's Rollout resource.
+    Using Argo Rollouts mode. Official chart deployment disabled.
+    No value transformation needed for subchart.
 {{- end }}

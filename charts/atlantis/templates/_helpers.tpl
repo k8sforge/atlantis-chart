@@ -424,10 +424,13 @@ command:
 
 # TRANSFORM: dataStorage object → string for official chart compatibility
 # CRITICAL: Official chart expects dataStorage as a STRING, not object
+# This transformation ALWAYS produces a string, never an object
 {{- $dataStorageValue := "" }}
-{{- if .Values.atlantisConfig.dataStorage }}
-  {{- if and .Values.atlantisConfig.dataStorage.enabled .Values.atlantisConfig.dataStorage.size }}
-    {{- $dataStorageValue = .Values.atlantisConfig.dataStorage.size }}
+{{- if and .Values.atlantisConfig.dataStorage .Values.atlantisConfig.dataStorage.enabled }}
+  {{- if .Values.atlantisConfig.dataStorage.size }}
+    {{- $dataStorageValue = (.Values.atlantisConfig.dataStorage.size | toString) }}
+  {{- else }}
+    {{- $dataStorageValue = "10Gi" }}
   {{- end }}
 {{- end }}
 dataStorage: {{ $dataStorageValue | quote }}
@@ -472,17 +475,23 @@ extraContainers:
 {{- toYaml .Values.atlantisConfig.extraContainers | nindent 2 }}
 {{- end }}
 
-# EXCLUDED PROPERTIES (not supported by official chart):
+# EXPLICITLY EXCLUDED PROPERTIES (not supported by official chart):
+# The following properties are intentionally NOT included in the transformation
+# to ensure compatibility with the official Atlantis chart schema:
+
+# EXCLUDED: Enhanced wrapper properties (not supported by official chart)
+# - podLabels: Use deployment.type="rollout" for enhanced pod labels
+# - podAnnotations: Use deployment.type="rollout" for enhanced pod annotations
+# - podSecurityContext: Use deployment.type="rollout" for enhanced security contexts
+# - securityContext: Use deployment.type="rollout" for enhanced security contexts
 # - volumeClaim: Array format not compatible with official chart
 # - statefulSet: Not supported by official Atlantis chart
 # - disruptionBudget: Wrapper provides enhanced PDB instead
+# - livenessProbe.path/scheme: Enhanced probe properties not supported
+# - readinessProbe.path/scheme: Enhanced probe properties not supported
 
-# EXCLUDE: These properties are used only by wrapper templates
-# - podLabels (not supported by official chart)
-# - podAnnotations (not supported by official chart)
-# - podSecurityContext (not supported by official chart)
-# - securityContext (not supported by official chart)
-# - scheme/path properties in probes (not supported by official chart)
+# These properties are available in atlantisConfig: for wrapper features
+# but are filtered out from the atlantis: section passed to the subchart.
 {{- end }}
 
 {{/*
@@ -617,6 +626,47 @@ Ensures that subchart values are properly formatted and compatible
   {{- if not (kindIs "float64" .Values.atlantis.service.port) }}
     {{- fail "ERROR: atlantis.service.port must be an integer value." }}
   {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Validate that the transformation output is correct and compatible
+with the official Atlantis chart schema.
+*/}}
+{{- define "atlantis.validateTransformation" -}}
+{{- $officialValues := include "atlantis.officialChartValues" . | fromYaml }}
+
+{{/* Ensure dataStorage is always a string, never an object */}}
+{{- if not (kindOf $officialValues.dataStorage | eq "string") }}
+{{- fail "ERROR: dataStorage in the transformed official chart values must be a string." }}
+{{- end }}
+
+{{/* Ensure no unsupported properties are present */}}
+{{- if hasKey $officialValues "podLabels" }}
+{{- fail "ERROR: podLabels should not be present in the transformed official chart values." }}
+{{- end }}
+{{- if hasKey $officialValues "podAnnotations" }}
+{{- fail "ERROR: podAnnotations should not be present in the transformed official chart values." }}
+{{- end }}
+{{- if hasKey $officialValues "podSecurityContext" }}
+{{- fail "ERROR: podSecurityContext should not be present in the transformed official chart values." }}
+{{- end }}
+{{- if hasKey $officialValues "securityContext" }}
+{{- fail "ERROR: securityContext should not be present in the transformed official chart values." }}
+{{- end }}
+{{- if hasKey $officialValues "statefulSet" }}
+{{- fail "ERROR: statefulSet should not be present in the transformed official chart values." }}
+{{- end }}
+{{- if hasKey $officialValues "disruptionBudget" }}
+{{- fail "ERROR: disruptionBudget should not be present in the transformed official chart values." }}
+{{- end }}
+{{- if hasKey $officialValues "volumeClaim" }}
+{{- fail "ERROR: volumeClaim should not be present in the transformed official chart values." }}
+{{- end }}
+
+{{/* Ensure no double-nesting */}}
+{{- if hasKey $officialValues "atlantis" }}
+{{- fail "ERROR: Double-nesting detected in transformation output (atlantis.atlantis). Check transformation logic." }}
 {{- end }}
 {{- end }}
 
