@@ -1,35 +1,35 @@
-{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+{{- if and .Values.enhancedStorage.enabled (not .Values.enhancedStorage.existingClaim) }}
 {{- /* Auto-select storage configuration based on replica count */}}
-{{- $replicaCount := .Values.replicaCount | int }}
+{{- $replicaCount := .Values.atlantis.replicaCount | default 1 | int }}
 {{- $storageClass := "" }}
 {{- $accessMode := "" }}
 {{- $size := "" }}
 
-{{- if .Values.persistence.storageClass }}
+{{- if .Values.enhancedStorage.storageClass }}
   {{/* User specified exact storageClass - use as-is */}}
-  {{- $storageClass = .Values.persistence.storageClass }}
+  {{- $storageClass = .Values.enhancedStorage.storageClass }}
 {{- else }}
   {{/* Auto-select based on replica count */}}
   {{- if eq $replicaCount 1 }}
-    {{- $storageClass = .Values.persistence.ebs.storageClass }}
+    {{- $storageClass = .Values.enhancedStorage.ebs.storageClass }}
   {{- else }}
-    {{- $storageClass = .Values.persistence.efs.storageClass }}
+    {{- $storageClass = .Values.enhancedStorage.efs.storageClass }}
   {{- end }}
 {{- end }}
 
-{{- if .Values.persistence.size }}
+{{- if .Values.enhancedStorage.size }}
   {{/* User specified exact size - use as-is */}}
-  {{- $size = .Values.persistence.size }}
+  {{- $size = .Values.enhancedStorage.size }}
 {{- else }}
   {{/* Auto-select based on replica count */}}
   {{- if eq $replicaCount 1 }}
-    {{- $size = .Values.persistence.ebs.size }}
+    {{- $size = .Values.enhancedStorage.ebs.size }}
   {{- else }}
-    {{- $size = .Values.persistence.efs.size }}
+    {{- $size = .Values.enhancedStorage.efs.size }}
   {{- end }}
 {{- end }}
 
-{{- if .Values.persistence.accessModes }}
+{{- if .Values.enhancedStorage.accessModes }}
   {{/* User specified exact accessModes - use as-is */}}
 {{- else }}
   {{/* Auto-select based on replica count */}}
@@ -48,8 +48,8 @@ metadata:
     {{- include "atlantis.labels" . | nindent 4 }}
 spec:
   accessModes:
-    {{- if .Values.persistence.accessModes }}
-    {{- range .Values.persistence.accessModes }}
+    {{- if .Values.enhancedStorage.accessModes }}
+    {{- range .Values.enhancedStorage.accessModes }}
     - {{ . | quote }}
     {{- end }}
     {{- else }}
@@ -66,4 +66,3 @@ spec:
     requests:
       storage: {{ $size | quote }}
 {{- end }}
-
