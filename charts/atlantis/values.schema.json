@@ -1,0 +1,713 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Atlantis Helm Chart Values Schema",
+  "description": "Schema for k8sforge/atlantis-chart values.yaml configuration",
+  "additionalProperties": true,
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "description": "Number of replicas for wrapper features (Rollouts, etc.)",
+      "default": 1,
+      "minimum": 0
+    },
+    "deployment": {
+      "type": "object",
+      "description": "Enhanced deployment configuration with Argo Rollouts support",
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["deployment", "rollout"],
+          "default": "deployment",
+          "description": "Deployment type: 'deployment' for standard K8s, 'rollout' for Argo Rollouts"
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["rollingUpdate", "blueGreen", "canary"],
+          "default": "blueGreen",
+          "description": "Rollout strategy (only used if type == rollout)"
+        },
+        "autoPromotionEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-promote on deployment"
+        },
+        "scaleDownDelaySeconds": {
+          "type": "integer",
+          "default": 30,
+          "minimum": 0
+        },
+        "rollingUpdate": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "maxSurge": {
+              "oneOf": [
+                {"type": "string"},
+                {"type": "integer"}
+              ]
+            },
+            "maxUnavailable": {
+              "oneOf": [
+                {"type": "string"},
+                {"type": "integer"}
+              ]
+            }
+          }
+        },
+        "canary": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "steps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "analysis": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "trafficRouting": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "description": "Enhanced monitoring and observability",
+      "additionalProperties": true,
+      "properties": {
+        "serviceMonitor": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable ServiceMonitor for Prometheus"
+            },
+            "interval": {
+              "type": "string",
+              "default": "30s",
+              "description": "Scrape interval"
+            },
+            "scrapeTimeout": {
+              "type": "string",
+              "default": "10s",
+              "description": "Scrape timeout"
+            },
+            "labels": {
+              "type": "object",
+              "additionalProperties": true,
+              "default": {},
+              "description": "Additional labels for ServiceMonitor"
+            }
+          }
+        }
+      }
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "description": "High availability configuration",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable PodDisruptionBudget"
+        },
+        "minAvailable": {
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "string"}
+          ],
+          "description": "Minimum available pods"
+        },
+        "maxUnavailable": {
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "string"}
+          ],
+          "description": "Maximum unavailable pods"
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "description": "Enhanced persistent storage with auto-selection",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable persistent storage"
+        },
+        "ebs": {
+          "type": "object",
+          "description": "EBS configuration (for single replica)",
+          "additionalProperties": true,
+          "properties": {
+            "storageClass": {
+              "type": "string",
+              "default": "gp3",
+              "description": "AWS EBS storage class"
+            },
+            "size": {
+              "type": "string",
+              "default": "10Gi",
+              "description": "Storage size"
+            }
+          }
+        },
+        "efs": {
+          "type": "object",
+          "description": "EFS configuration (for multi-replica)",
+          "additionalProperties": true,
+          "properties": {
+            "storageClass": {
+              "type": "string",
+              "default": "efs-sc",
+              "description": "AWS EFS storage class"
+            },
+            "size": {
+              "type": "string",
+              "default": "50Gi",
+              "description": "Storage size"
+            }
+          }
+        },
+        "storageClass": {
+          "type": "string",
+          "description": "Override: specify exact storage class"
+        },
+        "size": {
+          "type": "string",
+          "description": "Override: specify exact size"
+        },
+        "accessModes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Override: specify exact access modes"
+        },
+        "existingClaim": {
+          "type": "string",
+          "description": "Optional: existing claim name (bypasses all auto-selection)"
+        }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "description": "Platform-agnostic health check configuration",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable health check annotations"
+        },
+        "path": {
+          "type": "string",
+          "default": "/healthz",
+          "description": "Health check path"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": ["HTTP", "HTTPS"],
+          "default": "HTTP",
+          "description": "Health check protocol"
+        },
+        "port": {
+          "type": "string",
+          "default": "traffic-port",
+          "description": "Health check port"
+        }
+      }
+    },
+    "atlantis": {
+      "type": "object",
+      "description": "Configuration passed to the official Atlantis chart dependency",
+      "additionalProperties": true,
+      "properties": {
+        "orgAllowlist": {
+          "type": "string",
+          "default": "github.com/myorg/*",
+          "description": "Repository allowlist pattern"
+        },
+        "atlantisUrl": {
+          "type": "string",
+          "description": "Atlantis URL (if not using ingress)"
+        },
+        "logLevel": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "info",
+          "description": "Log level"
+        },
+        "github": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "user": {
+              "type": "string",
+              "description": "GitHub username"
+            },
+            "token": {
+              "type": "string",
+              "description": "GitHub token"
+            },
+            "secret": {
+              "type": "string",
+              "description": "GitHub webhook secret"
+            }
+          }
+        },
+        "githubApp": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "id": {
+              "type": ["string", "integer"],
+              "description": "GitHub App ID"
+            },
+            "slug": {
+              "type": "string",
+              "description": "GitHub App slug"
+            },
+            "key": {
+              "type": "string",
+              "description": "GitHub App private key"
+            },
+            "installationId": {
+              "type": ["string", "integer"],
+              "description": "GitHub App installation ID"
+            }
+          }
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "runatlantis/atlantis",
+              "description": "Atlantis image repository"
+            },
+            "tag": {
+              "type": "string",
+              "default": "latest",
+              "description": "Atlantis image tag"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "Never", "IfNotPresent"],
+              "default": "IfNotPresent",
+              "description": "Image pull policy"
+            }
+          }
+        },
+        "imagePullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "replicaCount": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 0,
+          "description": "Number of replicas for official chart"
+        },
+        "service": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "default": "ClusterIP",
+              "description": "Service type"
+            },
+            "port": {
+              "type": "integer",
+              "default": 4141,
+              "description": "Service port"
+            },
+            "targetPort": {
+              "type": "integer",
+              "default": 4141,
+              "description": "Target port"
+            },
+            "loadBalancerIP": {
+              "type": ["string", "null"],
+              "description": "Load balancer IP"
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable ingress"
+            },
+            "ingressClassName": {
+              "type": "string",
+              "description": "Ingress class name"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": true,
+              "default": {},
+              "description": "Ingress annotations"
+            },
+            "path": {
+              "type": "string",
+              "default": "/",
+              "description": "Ingress path"
+            },
+            "pathType": {
+              "type": "string",
+              "enum": ["Exact", "Prefix", "ImplementationSpecific"],
+              "default": "Prefix",
+              "description": "Path type"
+            },
+            "host": {
+              "type": "string",
+              "default": "atlantis.example.com",
+              "description": "Ingress host"
+            },
+            "tls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "default": []
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "limits": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "memory": {
+                  "type": "string",
+                  "default": "1Gi"
+                },
+                "cpu": {
+                  "type": "string",
+                  "default": "100m"
+                }
+              }
+            },
+            "requests": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "memory": {
+                  "type": "string",
+                  "default": "512Mi"
+                },
+                "cpu": {
+                  "type": "string",
+                  "default": "100m"
+                }
+              }
+            }
+          }
+        },
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "tolerations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "affinity": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "podAnnotations": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {},
+          "description": "Pod annotations"
+        },
+        "podLabels": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {},
+          "description": "Pod labels"
+        },
+        "securityContext": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {},
+          "description": "Container security context"
+        },
+        "podSecurityContext": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {},
+          "description": "Pod security context"
+        },
+        "serviceAccount": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "create": {
+              "type": "boolean",
+              "default": true,
+              "description": "Specifies whether a service account should be created"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": true,
+              "default": {},
+              "description": "Annotations to add to the service account"
+            },
+            "name": {
+              "type": "string",
+              "description": "The name of the service account to use"
+            }
+          }
+        },
+        "environmentSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Environment variables"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "dataStorage": {
+          "type": "object",
+          "description": "Data storage configuration",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable data storage"
+            },
+            "storageClass": {
+              "type": "string",
+              "description": "Storage class name"
+            },
+            "size": {
+              "type": "string",
+              "description": "Storage size"
+            },
+            "accessModes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Access modes for the storage"
+            }
+          }
+        },
+        "livenessProbe": {
+          "type": "object",
+          "description": "Liveness probe configuration",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "default": 60
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "default": 5
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "default": 5
+            },
+            "successThreshold": {
+              "type": "integer",
+              "default": 1
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "default": 5
+            },
+            "scheme": {
+              "type": "string",
+              "enum": ["HTTP", "HTTPS"],
+              "default": "HTTP"
+            },
+            "path": {
+              "type": "string",
+              "default": "/healthz",
+              "description": "Health check path"
+            }
+          }
+        },
+        "readinessProbe": {
+          "type": "object",
+          "description": "Readiness probe configuration",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "default": 60
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "default": 5
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "default": 5
+            },
+            "successThreshold": {
+              "type": "integer",
+              "default": 1
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "default": 5
+            },
+            "scheme": {
+              "type": "string",
+              "enum": ["HTTP", "HTTPS"],
+              "default": "HTTP"
+            },
+            "path": {
+              "type": "string",
+              "default": "/healthz",
+              "description": "Health check path"
+            }
+          }
+        },
+        "volumeClaim": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": [],
+          "description": "Volume claims configuration"
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "initContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "extraContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "statefulSet": {
+          "type": "object",
+          "description": "StatefulSet configuration",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable StatefulSet instead of Deployment"
+            }
+          }
+        },
+        "disruptionBudget": {
+          "type": "object",
+          "description": "Pod disruption budget configuration",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable pod disruption budget"
+            },
+            "minAvailable": {
+              "oneOf": [
+                {"type": "integer"},
+                {"type": "string"}
+              ],
+              "description": "Minimum available pods"
+            },
+            "maxUnavailable": {
+              "oneOf": [
+                {"type": "integer"},
+                {"type": "string"}
+              ],
+              "description": "Maximum unavailable pods"
+            }
+          }
+        }
+      }
+    }
+  }
+}
