@@ -18,13 +18,20 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["deployment", "rollout"],
+          "enum": [
+            "deployment",
+            "rollout"
+          ],
           "default": "deployment",
           "description": "Deployment type: 'deployment' for standard K8s, 'rollout' for Argo Rollouts"
         },
         "strategy": {
           "type": "string",
-          "enum": ["rollingUpdate", "blueGreen", "canary"],
+          "enum": [
+            "rollingUpdate",
+            "blueGreen",
+            "canary"
+          ],
           "default": "blueGreen",
           "description": "Rollout strategy (only used if type == rollout)"
         },
@@ -44,14 +51,22 @@
           "properties": {
             "maxSurge": {
               "oneOf": [
-                {"type": "string"},
-                {"type": "integer"}
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
               ]
             },
             "maxUnavailable": {
               "oneOf": [
-                {"type": "string"},
-                {"type": "integer"}
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
               ]
             }
           }
@@ -125,15 +140,23 @@
         },
         "minAvailable": {
           "oneOf": [
-            {"type": "integer"},
-            {"type": "string"}
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
           ],
           "description": "Minimum available pods"
         },
         "maxUnavailable": {
           "oneOf": [
-            {"type": "integer"},
-            {"type": "string"}
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
           ],
           "description": "Maximum unavailable pods"
         }
@@ -221,7 +244,10 @@
         },
         "protocol": {
           "type": "string",
-          "enum": ["HTTP", "HTTPS"],
+          "enum": [
+            "HTTP",
+            "HTTPS"
+          ],
           "default": "HTTP",
           "description": "Health check protocol"
         },
@@ -232,9 +258,9 @@
         }
       }
     },
-    "atlantis": {
+    "atlantisConfig": {
       "type": "object",
-      "description": "Configuration passed to the official Atlantis chart dependency",
+      "description": "Enhanced configuration used by wrapper templates (transformed before passing to official chart)",
       "additionalProperties": true,
       "properties": {
         "orgAllowlist": {
@@ -248,7 +274,12 @@
         },
         "logLevel": {
           "type": "string",
-          "enum": ["debug", "info", "warn", "error"],
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ],
           "default": "info",
           "description": "Log level"
         },
@@ -275,7 +306,10 @@
           "additionalProperties": true,
           "properties": {
             "id": {
-              "type": ["string", "integer"],
+              "type": [
+                "string",
+                "integer"
+              ],
               "description": "GitHub App ID"
             },
             "slug": {
@@ -287,7 +321,10 @@
               "description": "GitHub App private key"
             },
             "installationId": {
-              "type": ["string", "integer"],
+              "type": [
+                "string",
+                "integer"
+              ],
               "description": "GitHub App installation ID"
             }
           }
@@ -308,7 +345,11 @@
             },
             "pullPolicy": {
               "type": "string",
-              "enum": ["Always", "Never", "IfNotPresent"],
+              "enum": [
+                "Always",
+                "Never",
+                "IfNotPresent"
+              ],
               "default": "IfNotPresent",
               "description": "Image pull policy"
             }
@@ -334,7 +375,11 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer"
+              ],
               "default": "ClusterIP",
               "description": "Service type"
             },
@@ -349,7 +394,10 @@
               "description": "Target port"
             },
             "loadBalancerIP": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "description": "Load balancer IP"
             }
           }
@@ -380,7 +428,11 @@
             },
             "pathType": {
               "type": "string",
-              "enum": ["Exact", "Prefix", "ImplementationSpecific"],
+              "enum": [
+                "Exact",
+                "Prefix",
+                "ImplementationSpecific"
+              ],
               "default": "Prefix",
               "description": "Path type"
             },
@@ -577,7 +629,10 @@
             },
             "scheme": {
               "type": "string",
-              "enum": ["HTTP", "HTTPS"],
+              "enum": [
+                "HTTP",
+                "HTTPS"
+              ],
               "default": "HTTP"
             },
             "path": {
@@ -618,7 +673,10 @@
             },
             "scheme": {
               "type": "string",
-              "enum": ["HTTP", "HTTPS"],
+              "enum": [
+                "HTTP",
+                "HTTPS"
+              ],
               "default": "HTTP"
             },
             "path": {
@@ -693,19 +751,76 @@
             },
             "minAvailable": {
               "oneOf": [
-                {"type": "integer"},
-                {"type": "string"}
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
               ],
               "description": "Minimum available pods"
             },
             "maxUnavailable": {
               "oneOf": [
-                {"type": "integer"},
-                {"type": "string"}
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
               ],
               "description": "Maximum unavailable pods"
             }
           }
+        }
+      }
+    },
+    "atlantis": {
+      "type": "object",
+      "description": "Filtered values passed directly to the official Atlantis chart dependency (auto-generated, do not edit directly)",
+      "additionalProperties": true,
+      "properties": {
+        "orgAllowlist": {
+          "type": "string",
+          "description": "Repository allowlist pattern (filtered from atlantisConfig)"
+        },
+        "atlantisUrl": {
+          "type": "string",
+          "description": "Atlantis URL (filtered from atlantisConfig)"
+        },
+        "logLevel": {
+          "type": "string",
+          "description": "Log level (filtered from atlantisConfig)"
+        },
+        "replicaCount": {
+          "type": "integer",
+          "description": "Replica count (conditionally set based on deployment type)"
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables (filtered from atlantisConfig)"
+        },
+        "dataStorage": {
+          "type": "string",
+          "description": "Data storage size (transformed from atlantisConfig object to string)"
+        },
+        "service": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Service configuration (filtered from atlantisConfig)"
+        },
+        "ingress": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Ingress configuration (filtered from atlantisConfig)"
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Resource configuration (filtered from atlantisConfig)"
         }
       }
     }
