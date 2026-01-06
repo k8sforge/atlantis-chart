@@ -1,5 +1,5 @@
-{{- if eq .Values.deployment.type "rollout" }}
-{{- include "atlantis.validatePersistence" . }}
+{{- if .Values.enhancedDeployment.enabled }}
+{{- if eq .Values.enhancedDeployment.type "rollout" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
@@ -7,42 +7,140 @@ metadata:
   labels:
     {{- include "atlantis.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.atlantis.replicaCount | default 1 }}
   selector:
     matchLabels:
       {{- include "atlantis.selectorLabels" . | nindent 6 }}
   template:
-    {{- include "atlantis.rolloutPodTemplate" . | nindent 4 }}
-  {{- if or (eq .Values.deployment.strategy "rollingUpdate") (eq .Values.deployment.strategy "blueGreen") (eq .Values.deployment.strategy "canary") }}
+    metadata:
+      labels:
+        {{- include "atlantis.selectorLabels" . | nindent 8 }}
+      {{- with .Values.atlantis.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.atlantis.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "atlantis.serviceAccountName" . }}
+      {{- with .Values.atlantis.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: atlantis
+          {{- with .Values.atlantis.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.atlantis.image.repository | default "runatlantis/atlantis" }}:{{ .Values.atlantis.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.atlantis.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.atlantis.service.port | default 4141 }}
+              protocol: TCP
+          {{- if .Values.atlantis.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.atlantis.livenessProbe.path | default "/healthz" }}
+              port: http
+              scheme: {{ .Values.atlantis.livenessProbe.scheme | default "HTTP" }}
+            periodSeconds: {{ .Values.atlantis.livenessProbe.periodSeconds | default 60 }}
+            initialDelaySeconds: {{ .Values.atlantis.livenessProbe.initialDelaySeconds | default 5 }}
+            timeoutSeconds: {{ .Values.atlantis.livenessProbe.timeoutSeconds | default 5 }}
+            successThreshold: {{ .Values.atlantis.livenessProbe.successThreshold | default 1 }}
+            failureThreshold: {{ .Values.atlantis.livenessProbe.failureThreshold | default 5 }}
+          {{- end }}
+          {{- if .Values.atlantis.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.atlantis.readinessProbe.path | default "/healthz" }}
+              port: http
+              scheme: {{ .Values.atlantis.readinessProbe.scheme | default "HTTP" }}
+            periodSeconds: {{ .Values.atlantis.readinessProbe.periodSeconds | default 60 }}
+            initialDelaySeconds: {{ .Values.atlantis.readinessProbe.initialDelaySeconds | default 5 }}
+            timeoutSeconds: {{ .Values.atlantis.readinessProbe.timeoutSeconds | default 5 }}
+            successThreshold: {{ .Values.atlantis.readinessProbe.successThreshold | default 1 }}
+            failureThreshold: {{ .Values.atlantis.readinessProbe.failureThreshold | default 5 }}
+          {{- end }}
+          {{- if .Values.atlantis.resources }}
+          resources:
+            {{- toYaml .Values.atlantis.resources | nindent 12 }}
+          {{- end }}
+          env:
+            - name: ATLANTIS_DATA_DIR
+              value: /atlantis-data
+            {{- if .Values.atlantis.orgAllowlist }}
+            - name: ATLANTIS_REPO_ALLOWLIST
+              value: {{ .Values.atlantis.orgAllowlist | quote }}
+            {{- end }}
+            {{- if .Values.atlantis.atlantisUrl }}
+            - name: ATLANTIS_ATLANTIS_URL
+              value: {{ .Values.atlantis.atlantisUrl | quote }}
+            {{- end }}
+            {{- if .Values.atlantis.logLevel }}
+            - name: ATLANTIS_LOG_LEVEL
+              value: {{ .Values.atlantis.logLevel | quote }}
+            {{- end }}
+            {{- with .Values.atlantis.environment }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          {{- if .Values.atlantis.extraVolumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.atlantis.extraVolumeMounts | nindent 12 }}
+          {{- end }}
+      {{- with .Values.atlantis.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.atlantis.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.atlantis.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.atlantis.extraVolumes }}
+      volumes:
+        {{- toYaml .Values.atlantis.extraVolumes | nindent 8 }}
+      {{- end }}
+  {{- if or (eq .Values.enhancedDeployment.strategy "rollingUpdate") (eq .Values.enhancedDeployment.strategy "blueGreen") (eq .Values.enhancedDeployment.strategy "canary") }}
   strategy:
-    {{- if eq .Values.deployment.strategy "rollingUpdate" }}
+    {{- if eq .Values.enhancedDeployment.strategy "rollingUpdate" }}
     rollingUpdate:
-      {{- if .Values.deployment.rollingUpdate.maxSurge }}
-      maxSurge: {{ .Values.deployment.rollingUpdate.maxSurge | quote }}
+      {{- if .Values.enhancedDeployment.rollingUpdate.maxSurge }}
+      maxSurge: {{ .Values.enhancedDeployment.rollingUpdate.maxSurge | quote }}
       {{- end }}
-      {{- if .Values.deployment.rollingUpdate.maxUnavailable }}
-      maxUnavailable: {{ .Values.deployment.rollingUpdate.maxUnavailable | quote }}
+      {{- if .Values.enhancedDeployment.rollingUpdate.maxUnavailable }}
+      maxUnavailable: {{ .Values.enhancedDeployment.rollingUpdate.maxUnavailable | quote }}
       {{- end }}
-    {{- else if eq .Values.deployment.strategy "blueGreen" }}
+    {{- else if eq .Values.enhancedDeployment.strategy "blueGreen" }}
     blueGreen:
       activeService: {{ include "atlantis.fullname" . }}
       previewService: {{ include "atlantis.fullname" . }}-preview
-      autoPromotionEnabled: {{ .Values.deployment.autoPromotionEnabled }}
-      scaleDownDelaySeconds: {{ .Values.deployment.scaleDownDelaySeconds }}
-    {{- else if eq .Values.deployment.strategy "canary" }}
+      autoPromotionEnabled: {{ .Values.enhancedDeployment.autoPromotionEnabled }}
+      scaleDownDelaySeconds: {{ .Values.enhancedDeployment.scaleDownDelaySeconds }}
+    {{- else if eq .Values.enhancedDeployment.strategy "canary" }}
     canary:
-      {{- if .Values.deployment.canary.steps }}
+      {{- if .Values.enhancedDeployment.canary.steps }}
       steps:
-        {{- toYaml .Values.deployment.canary.steps | nindent 8 }}
+        {{- toYaml .Values.enhancedDeployment.canary.steps | nindent 8 }}
       {{- end }}
-      {{- if .Values.deployment.canary.analysis }}
+      {{- if .Values.enhancedDeployment.canary.analysis }}
       analysis:
-        {{- toYaml .Values.deployment.canary.analysis | nindent 8 }}
+        {{- toYaml .Values.enhancedDeployment.canary.analysis | nindent 8 }}
       {{- end }}
-      {{- if .Values.deployment.canary.trafficRouting }}
+      {{- if .Values.enhancedDeployment.canary.trafficRouting }}
       trafficRouting:
-        {{- toYaml .Values.deployment.canary.trafficRouting | nindent 8 }}
+        {{- toYaml .Values.enhancedDeployment.canary.trafficRouting | nindent 8 }}
       {{- end }}
     {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}

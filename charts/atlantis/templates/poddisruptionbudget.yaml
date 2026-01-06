@@ -1,4 +1,4 @@
-{{- if .Values.podDisruptionBudget.enabled }}
+{{- if .Values.enhancedHA.podDisruptionBudget.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -9,10 +9,10 @@ spec:
   selector:
     matchLabels:
       {{- include "atlantis.selectorLabels" . | nindent 6 }}
-  {{- if .Values.podDisruptionBudget.minAvailable }}
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- if .Values.enhancedHA.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.enhancedHA.podDisruptionBudget.minAvailable }}
   {{- end }}
-  {{- if .Values.podDisruptionBudget.maxUnavailable }}
-  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- if .Values.enhancedHA.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.enhancedHA.podDisruptionBudget.maxUnavailable }}
   {{- end }}
 {{- end }}

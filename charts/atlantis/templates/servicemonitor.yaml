@@ -1,11 +1,11 @@
-{{- if .Values.monitoring.serviceMonitor.enabled }}
+{{- if .Values.enhancedMonitoring.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "atlantis.fullname" . }}
   labels:
     {{- include "atlantis.labels" . | nindent 4 }}
-    {{- with .Values.monitoring.serviceMonitor.labels }}
+    {{- with .Values.enhancedMonitoring.serviceMonitor.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -14,8 +14,7 @@ spec:
       {{- include "atlantis.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: http
-      interval: {{ .Values.monitoring.serviceMonitor.interval }}
-      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+      interval: {{ .Values.enhancedMonitoring.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.enhancedMonitoring.serviceMonitor.scrapeTimeout }}
       path: /metrics
 {{- end }}
-
