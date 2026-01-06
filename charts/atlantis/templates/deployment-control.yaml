@@ -1,0 +1,41 @@
+{{/*
+Conditional Deployment Control
+This template ensures proper coordination between the wrapper chart's Rollout
+and the official Atlantis chart's Deployment resource.
+
+When deployment.type == "rollout":
+- Our Rollout resource handles pod management
+- Official chart's Deployment should be disabled (replica count = 0)
+- ConfigMaps, Secrets, Services from official chart are still used
+
+When deployment.type == "deployment":
+- Official chart's Deployment handles pod management
+- Our Rollout resource is not created (handled by rollout.yaml template)
+*/}}
+
+{{- if eq .Values.deployment.type "rollout" }}
+---
+# When using Rollouts, we need to disable the official chart's deployment
+# This is achieved by setting the replica count to 0 in the atlantis section
+# The Rollout resource will handle the actual pods
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "atlantis.fullname" . }}-deployment-control
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+data:
+  deployment-mode: "rollout"
+  message: "Deployment disabled - using Argo Rollout for pod management"
+{{- else }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "atlantis.fullname" . }}-deployment-control
+  labels:
+    {{- include "atlantis.labels" . | nindent 4 }}
+data:
+  deployment-mode: "deployment"
+  message: "Using standard Kubernetes Deployment from official chart"
+{{- end }}

@@ -2,41 +2,32 @@
 
 ![Chart Releaser](https://github.com/k8sforge/atlantis-chart/actions/workflows/chart-releaser.yml/badge.svg)
 
-An **enhanced wrapper** around the [official Atlantis Helm chart](https://github.com/runatlantis/helm-charts) that adds enterprise-grade features for production deployments. Atlantis automates Terraform workflows through pull requests.
-
----
-
-## 🎯 **Wrapper Chart Architecture**
-
-This chart extends the **official Atlantis chart (v5.24.1)** as a dependency, providing:
-
-✅ **Official Chart Benefits:**
-
-- Community-maintained and regularly updated
-- Production-tested and stable
-- Full Atlantis feature compatibility
-
-✅ **Enhanced Features:**
-
-- **Argo Rollouts** support (Blue-Green, Canary, Rolling Update)
-- **Intelligent Storage** (EBS/EFS auto-selection based on replica count)
-- **Enhanced Monitoring** (ServiceMonitor, platform-agnostic health checks)
-- **High Availability** (PodDisruptionBudget, multi-replica validation)
+A Helm chart for deploying Atlantis on Kubernetes. Atlantis automates Terraform workflows through pull requests.
 
 ---
 
 ## Overview
 
-This is a **reusable enhanced Helm chart repository**.
-The chart wraps the official Atlantis chart and adds advanced features for enterprise deployments.
+This is a **reusable Helm chart repository**. The chart is versioned and published so it can be referenced by other repositories that deploy Atlantis.
+
+This chart wraps the official [Atlantis Helm chart](https://github.com/runatlantis/helm-charts) with sensible defaults and additional configurations including:
+
+- **Argo Rollouts support** - Blue-Green, Canary, and Rolling Update strategies
+- **Intelligent Storage** - EBS/EFS auto-selection based on replica count
+- **Configurable health checks** - Platform-agnostic health check configuration for ingress
+- **Prometheus monitoring** - ServiceMonitor for metrics scraping (optional)
+- **High availability** - PodDisruptionBudget for production deployments (optional)
+- **Resource management** - Sensible resource defaults for Atlantis components
 
 ---
 
 ## Chart Details
 
 - **Chart Name**: `atlantis`
-- **Chart Version**: `0.1.0`
+- **Chart Version**: See [Chart.yaml](charts/atlantis/Chart.yaml#L5)
 - **App Version**: `latest` (Atlantis image tag)
+- **Dependencies**:
+  - `atlantis` (v0.30.0) from `https://runatlantis.github.io/helm-charts`
 
 ---
 
@@ -57,7 +48,7 @@ Both distributions publish the same chart versions.
 
 ```bash
 helm install my-atlantis \
-  oci://ghcr.io/k8sforge/atlantis-charts/atlantis \
+  oci://ghcr.io/k8sforge/atlantis-chart/atlantis \
   --version 0.1.0
 ```
 
@@ -72,7 +63,7 @@ helm registry login ghcr.io
 ### Install via Helm Repository (GitHub Pages)
 
 ```bash
-helm repo add atlantis https://k8sforge.github.io/atlantis-charts
+helm repo add atlantis https://k8sforge.github.io/atlantis-chart
 helm repo update
 
 helm install my-atlantis atlantis/atlantis --version 0.1.0
@@ -106,22 +97,24 @@ The following table lists the main configurable parameters:
 
 | Parameter                                                  | Description                  | Default                |
 | ---------------------------------------------------------- | ---------------------------- | ---------------------- |
-| `image.repository`                                         | Atlantis image repository    | `runatlantis/atlantis` |
-| `image.tag`                                                | Atlantis image tag           | `latest`               |
-| `replicaCount`                                             | Number of replicas           | `1`                    |
-| `service.type`                                             | Service type                 | `ClusterIP`            |
-| `service.port`                                             | Service port                 | `4141`                 |
-| `deployment.type`                                          | Deployment type              | `rollout`              |
+| `replicaCount`                                             | Number of replicas (wrapper) | `1`                    |
+| `deployment.type`                                          | Deployment type              | `deployment`           |
 | `deployment.strategy`                                      | Rollout strategy             | `blueGreen`            |
 | `deployment.autoPromotionEnabled`                          | Auto-promote on deployment   | `false`                |
-| `atlantis.repoAllowlist`                                   | Repository allowlist pattern | `github.com/*`         |
-| `ingress.enabled`                                          | Enable ingress               | `true`                 |
-| `ingress.ingressClassName`                                 | Ingress class name           | `""`                   |
-| `resources.requests.memory`                                | Memory request               | `256Mi`                |
-| `resources.requests.cpu`                                   | CPU request                  | `100m`                 |
-| `resources.limits.memory`                                  | Memory limit                 | `512Mi`                |
-| `resources.limits.cpu`                                     | CPU limit                    | `500m`                 |
-| See [values.yaml](values.yaml) for the full configuration. |                              |                        |
+| `atlantis.image.repository`                                | Atlantis image repository    | `runatlantis/atlantis` |
+| `atlantis.image.tag`                                       | Atlantis image tag           | `latest`               |
+| `atlantis.replicaCount`                                    | Replicas (official chart)    | `1`                    |
+| `atlantis.service.type`                                    | Service type                 | `ClusterIP`            |
+| `atlantis.service.port`                                    | Service port                 | `4141`                 |
+| `atlantis.orgAllowlist`                                    | Repository allowlist pattern | `github.com/myorg/*`   |
+| `atlantis.ingress.enabled`                                 | Enable ingress               | `false`                |
+| `atlantis.ingress.ingressClassName`                        | Ingress class name           | `""`                   |
+| `atlantis.resources.requests.memory`                       | Memory request               | `512Mi`                |
+| `atlantis.resources.requests.cpu`                          | CPU request                  | `100m`                 |
+| `atlantis.resources.limits.memory`                         | Memory limit                 | `1Gi`                  |
+| `atlantis.resources.limits.cpu`                            | CPU limit                    | `100m`                 |
+
+See [values.yaml](charts/atlantis/values.yaml) for the full configuration.
 
 ---
 
@@ -272,10 +265,11 @@ Atlantis requires GitHub authentication.
 ### Option 1: GitHub Personal Access Token
 
 ```yaml
-github:
-  user: "your-username"
-  token: "ghp_your_token"
-  webhookSecret: "your-webhook-secret"
+atlantis:
+  github:
+    user: "your-username"
+    token: "ghp_your_token"
+    webhookSecret: "your-webhook-secret"
 ```
 
 **Required scopes:**
@@ -289,16 +283,35 @@ github:
 ### Option 2: GitHub App (recommended for organizations)
 
 ```yaml
-github:
-  app:
+atlantis:
+  githubApp:
     id: "123456"
     key: |
       -----BEGIN RSA PRIVATE KEY-----
       ...
       -----END RSA PRIVATE KEY-----
     installationId: "78901234"
-  webhookSecret: "your-webhook-secret"
+  github:
+    webhookSecret: "your-webhook-secret"
 ```
+
+---
+
+## Environment Variables
+
+You can configure additional environment variables for Atlantis using the `atlantis.environment` section:
+
+```yaml
+atlantis:
+  environment:
+    ATLANTIS_GH_USER: "your-github-user"
+    ATLANTIS_GH_TOKEN: "your-github-token"
+    ATLANTIS_DISABLE_APPLY_ALL: "true"
+    ATLANTIS_LOG_LEVEL: "debug"
+  orgAllowlist: "github.com/yourorg/*"
+```
+
+**Important**: Environment variables must be configured under the `atlantis:` section to be properly passed to the underlying Atlantis pods.
 
 ---
 
@@ -446,7 +459,7 @@ version: 1.0.0
 dependencies:
   - name: atlantis
     version: 0.1.0
-    repository: https://k8sforge.github.io/atlantis-charts
+    repository: https://k8sforge.github.io/atlantis-chart
 ```
 
 Then:
@@ -544,6 +557,35 @@ kubectl get poddisruptionbudget -l app.kubernetes.io/name=atlantis
 
 ```bash
 kubectl get pvc -l app.kubernetes.io/name=atlantis
+```
+
+### Value Pass-Through Issues
+
+If environment variables or configuration are not appearing in Atlantis pods:
+
+1. **Check Value Structure**: Ensure Atlantis-specific configuration is under the `atlantis:` section:
+
+```yaml
+# ❌ Wrong - will not be passed to Atlantis
+environment:
+  ATLANTIS_GH_USER: "user"
+
+# ✅ Correct - properly passed to subchart
+atlantis:
+  environment:
+    ATLANTIS_GH_USER: "user"
+```
+
+1. **Verify ConfigMap**: Check that the official chart's ConfigMap contains your values:
+
+```bash
+kubectl get configmap <release-name>-atlantis -o yaml
+```
+
+1. **Check Pod Environment**: Verify environment variables in the running pod:
+
+```bash
+kubectl exec <pod-name> -- env | grep ATLANTIS
 ```
 
 ---

@@ -2,7 +2,7 @@ apiVersion: v2
 name: atlantis
 description: Enhanced Atlantis Helm chart with Argo Rollouts, monitoring, and HA features
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "latest"
 icon: https://avatars.githubusercontent.com/u/32311288
 keywords:
