@@ -44,53 +44,6 @@
           "type": "integer",
           "default": 30,
           "minimum": 0
-        },
-        "rollingUpdate": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "maxSurge": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "maxUnavailable": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            }
-          }
-        },
-        "canary": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "steps": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": true
-              }
-            },
-            "analysis": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "trafficRouting": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          }
         }
       }
     },
@@ -101,28 +54,22 @@
       "properties": {
         "serviceMonitor": {
           "type": "object",
-          "additionalProperties": true,
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": false,
-              "description": "Enable ServiceMonitor for Prometheus"
+              "default": false
             },
             "interval": {
               "type": "string",
-              "default": "30s",
-              "description": "Scrape interval"
+              "default": "30s"
             },
             "scrapeTimeout": {
               "type": "string",
-              "default": "10s",
-              "description": "Scrape timeout"
+              "default": "10s"
             },
             "labels": {
               "type": "object",
-              "additionalProperties": true,
-              "default": {},
-              "description": "Additional labels for ServiceMonitor"
+              "additionalProperties": true
             }
           }
         }
@@ -135,30 +82,11 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "default": false,
-          "description": "Enable PodDisruptionBudget"
+          "default": false
         },
         "minAvailable": {
-          "oneOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "string"
-            }
-          ],
-          "description": "Minimum available pods"
-        },
-        "maxUnavailable": {
-          "oneOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "string"
-            }
-          ],
-          "description": "Maximum unavailable pods"
+          "type": "integer",
+          "default": 1
         }
       }
     },
@@ -169,98 +97,54 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "default": false,
-          "description": "Enable persistent storage"
+          "default": false
         },
         "ebs": {
           "type": "object",
-          "description": "EBS configuration (for single replica)",
-          "additionalProperties": true,
           "properties": {
             "storageClass": {
               "type": "string",
-              "default": "gp3",
-              "description": "AWS EBS storage class"
+              "default": "gp3"
             },
             "size": {
               "type": "string",
-              "default": "10Gi",
-              "description": "Storage size"
+              "default": "10Gi"
             }
           }
         },
         "efs": {
           "type": "object",
-          "description": "EFS configuration (for multi-replica)",
-          "additionalProperties": true,
           "properties": {
             "storageClass": {
               "type": "string",
-              "default": "efs-sc",
-              "description": "AWS EFS storage class"
+              "default": "efs-sc"
             },
             "size": {
               "type": "string",
-              "default": "50Gi",
-              "description": "Storage size"
+              "default": "50Gi"
             }
           }
         },
         "storageClass": {
-          "type": "string",
-          "description": "Override: specify exact storage class"
+          "type": "string"
         },
         "size": {
-          "type": "string",
-          "description": "Override: specify exact size"
+          "type": "string"
         },
         "accessModes": {
           "type": "array",
           "items": {
             "type": "string"
-          },
-          "description": "Override: specify exact access modes"
+          }
         },
         "existingClaim": {
-          "type": "string",
-          "description": "Optional: existing claim name (bypasses all auto-selection)"
+          "type": "string"
         }
       }
     },
-    "healthCheck": {
+    "atlantis": {
       "type": "object",
-      "description": "Platform-agnostic health check configuration",
-      "additionalProperties": true,
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable health check annotations"
-        },
-        "path": {
-          "type": "string",
-          "default": "/healthz",
-          "description": "Health check path"
-        },
-        "protocol": {
-          "type": "string",
-          "enum": [
-            "HTTP",
-            "HTTPS"
-          ],
-          "default": "HTTP",
-          "description": "Health check protocol"
-        },
-        "port": {
-          "type": "string",
-          "default": "traffic-port",
-          "description": "Health check port"
-        }
-      }
-    },
-    "atlantisConfig": {
-      "type": "object",
-      "description": "Enhanced configuration used by wrapper templates (transformed before passing to official chart)",
+      "description": "Direct pass-through configuration for the official Atlantis chart",
       "additionalProperties": true,
       "properties": {
         "orgAllowlist": {
@@ -336,12 +220,12 @@
             "repository": {
               "type": "string",
               "default": "runatlantis/atlantis",
-              "description": "Atlantis image repository"
+              "description": "Docker image repository"
             },
             "tag": {
               "type": "string",
               "default": "latest",
-              "description": "Atlantis image tag"
+              "description": "Docker image tag"
             },
             "pullPolicy": {
               "type": "string",
@@ -358,8 +242,7 @@
         "imagePullSecrets": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
         },
@@ -367,7 +250,7 @@
           "type": "integer",
           "default": 1,
           "minimum": 0,
-          "description": "Number of replicas for official chart"
+          "description": "Number of replicas (automatically set to 0 when deployment.type='rollout')"
         },
         "service": {
           "type": "object",
@@ -377,28 +260,18 @@
               "type": "string",
               "enum": [
                 "ClusterIP",
-                "NodePort",
-                "LoadBalancer"
+                "LoadBalancer",
+                "NodePort"
               ],
-              "default": "ClusterIP",
-              "description": "Service type"
+              "default": "ClusterIP"
             },
             "port": {
               "type": "integer",
-              "default": 4141,
-              "description": "Service port"
+              "default": 4141
             },
             "targetPort": {
               "type": "integer",
-              "default": 4141,
-              "description": "Target port"
-            },
-            "loadBalancerIP": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "description": "Load balancer IP"
+              "default": 4141
             }
           }
         },
@@ -408,46 +281,26 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": false,
-              "description": "Enable ingress"
+              "default": false
             },
             "ingressClassName": {
-              "type": "string",
-              "description": "Ingress class name"
+              "type": "string"
             },
             "annotations": {
               "type": "object",
-              "additionalProperties": true,
-              "default": {},
-              "description": "Ingress annotations"
+              "additionalProperties": true
             },
             "path": {
               "type": "string",
-              "default": "/",
-              "description": "Ingress path"
+              "default": "/"
             },
             "pathType": {
               "type": "string",
-              "enum": [
-                "Exact",
-                "Prefix",
-                "ImplementationSpecific"
-              ],
-              "default": "Prefix",
-              "description": "Path type"
+              "default": "Prefix"
             },
             "host": {
               "type": "string",
-              "default": "atlantis.example.com",
-              "description": "Ingress host"
-            },
-            "tls": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "default": []
+              "default": "atlantis.example.com"
             }
           }
         },
@@ -457,30 +310,14 @@
           "properties": {
             "limits": {
               "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "memory": {
-                  "type": "string",
-                  "default": "1Gi"
-                },
-                "cpu": {
-                  "type": "string",
-                  "default": "100m"
-                }
+              "additionalProperties": {
+                "type": "string"
               }
             },
             "requests": {
               "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "memory": {
-                  "type": "string",
-                  "default": "512Mi"
-                },
-                "cpu": {
-                  "type": "string",
-                  "default": "100m"
-                }
+              "additionalProperties": {
+                "type": "string"
               }
             }
           }
@@ -493,8 +330,7 @@
         "tolerations": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
         },
@@ -506,26 +342,22 @@
         "podAnnotations": {
           "type": "object",
           "additionalProperties": true,
-          "default": {},
-          "description": "Pod annotations"
+          "default": {}
         },
         "podLabels": {
           "type": "object",
           "additionalProperties": true,
-          "default": {},
-          "description": "Pod labels"
+          "default": {}
         },
         "securityContext": {
           "type": "object",
           "additionalProperties": true,
-          "default": {},
-          "description": "Container security context"
+          "default": {}
         },
         "podSecurityContext": {
           "type": "object",
           "additionalProperties": true,
-          "default": {},
-          "description": "Pod security context"
+          "default": {}
         },
         "serviceAccount": {
           "type": "object",
@@ -533,26 +365,21 @@
           "properties": {
             "create": {
               "type": "boolean",
-              "default": true,
-              "description": "Specifies whether a service account should be created"
+              "default": true
             },
             "annotations": {
               "type": "object",
-              "additionalProperties": true,
-              "default": {},
-              "description": "Annotations to add to the service account"
+              "additionalProperties": true
             },
             "name": {
-              "type": "string",
-              "description": "The name of the service account to use"
+              "type": "string"
             }
           }
         },
         "environmentSecrets": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
         },
@@ -561,8 +388,7 @@
           "additionalProperties": {
             "type": "string"
           },
-          "default": {},
-          "description": "Environment variables"
+          "default": {}
         },
         "command": {
           "type": "array",
@@ -572,35 +398,12 @@
           "default": []
         },
         "dataStorage": {
-          "type": "object",
-          "description": "Data storage configuration",
-          "additionalProperties": true,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false,
-              "description": "Enable data storage"
-            },
-            "storageClass": {
-              "type": "string",
-              "description": "Storage class name"
-            },
-            "size": {
-              "type": "string",
-              "description": "Storage size"
-            },
-            "accessModes": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Access modes for the storage"
-            }
-          }
+          "type": "string",
+          "description": "Data storage size (simple string format for official chart compatibility)",
+          "default": ""
         },
         "livenessProbe": {
           "type": "object",
-          "description": "Liveness probe configuration",
           "additionalProperties": true,
           "properties": {
             "enabled": {
@@ -626,25 +429,11 @@
             "failureThreshold": {
               "type": "integer",
               "default": 5
-            },
-            "scheme": {
-              "type": "string",
-              "enum": [
-                "HTTP",
-                "HTTPS"
-              ],
-              "default": "HTTP"
-            },
-            "path": {
-              "type": "string",
-              "default": "/healthz",
-              "description": "Health check path"
             }
           }
         },
         "readinessProbe": {
           "type": "object",
-          "description": "Readiness probe configuration",
           "additionalProperties": true,
           "properties": {
             "enabled": {
@@ -670,157 +459,36 @@
             "failureThreshold": {
               "type": "integer",
               "default": 5
-            },
-            "scheme": {
-              "type": "string",
-              "enum": [
-                "HTTP",
-                "HTTPS"
-              ],
-              "default": "HTTP"
-            },
-            "path": {
-              "type": "string",
-              "default": "/healthz",
-              "description": "Health check path"
             }
           }
-        },
-        "volumeClaim": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "default": [],
-          "description": "Volume claims configuration"
         },
         "extraVolumes": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
         },
         "extraVolumeMounts": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
         },
         "initContainers": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
         },
         "extraContainers": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "object"
           },
           "default": []
-        },
-        "statefulSet": {
-          "type": "object",
-          "description": "StatefulSet configuration",
-          "additionalProperties": true,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false,
-              "description": "Enable StatefulSet instead of Deployment"
-            }
-          }
-        },
-        "disruptionBudget": {
-          "type": "object",
-          "description": "Pod disruption budget configuration",
-          "additionalProperties": true,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false,
-              "description": "Enable pod disruption budget"
-            },
-            "minAvailable": {
-              "oneOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "string"
-                }
-              ],
-              "description": "Minimum available pods"
-            },
-            "maxUnavailable": {
-              "oneOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "string"
-                }
-              ],
-              "description": "Maximum unavailable pods"
-            }
-          }
-        }
-      }
-    },
-    "atlantis": {
-      "type": "object",
-      "description": "Filtered values passed directly to the official Atlantis chart dependency (auto-generated, do not edit directly)",
-      "additionalProperties": true,
-      "properties": {
-        "orgAllowlist": {
-          "type": "string",
-          "description": "Repository allowlist pattern (filtered from atlantisConfig)"
-        },
-        "atlantisUrl": {
-          "type": "string",
-          "description": "Atlantis URL (filtered from atlantisConfig)"
-        },
-        "logLevel": {
-          "type": "string",
-          "description": "Log level (filtered from atlantisConfig)"
-        },
-        "replicaCount": {
-          "type": "integer",
-          "description": "Replica count (conditionally set based on deployment type)"
-        },
-        "environment": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "Environment variables (filtered from atlantisConfig)"
-        },
-        "dataStorage": {
-          "type": "string",
-          "description": "Data storage size (transformed from atlantisConfig object to string)"
-        },
-        "service": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Service configuration (filtered from atlantisConfig)"
-        },
-        "ingress": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Ingress configuration (filtered from atlantisConfig)"
-        },
-        "resources": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Resource configuration (filtered from atlantisConfig)"
         }
       }
     }

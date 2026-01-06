@@ -6,11 +6,11 @@ metadata:
   labels:
     {{- include "atlantis.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.atlantisConfig.service.type }}
+  type: {{ .Values.atlantis.service.type }}
   selector:
     {{- include "atlantis.selectorLabels" . | nindent 4 }}
   ports:
-    - port: {{ .Values.atlantisConfig.service.port }}
+    - port: {{ .Values.atlantis.service.port }}
       targetPort: 4141
       protocol: TCP
       name: http
