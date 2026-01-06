@@ -29,9 +29,9 @@ helm repo update
 ```bash
 # Install with minimal configuration
 helm install my-atlantis atlantis/atlantis \
-  --set orgAllowlist="github.com/myorg/*" \
-  --set github.user="atlantis-bot" \
-  --set github.token="ghp_xxxxxxxxxxxx"
+  --set atlantis.orgAllowlist="github.com/myorg/*" \
+  --set atlantis.github.user="atlantis-bot" \
+  --set atlantis.github.token="ghp_xxxxxxxxxxxx"
 ```
 
 ---
@@ -63,11 +63,12 @@ helm install my-atlantis charts/atlantis
 # Create values file
 cat > values.yaml <<EOF
 replicaCount: 2
-orgAllowlist: "github.com/myorg/*"
-github:
-  user: "atlantis-bot"
-  token: "ghp_xxxxxxxxxxxx"
-  secret: "webhook-secret"
+atlantis:
+  orgAllowlist: "github.com/myorg/*"
+  github:
+    user: "atlantis-bot"
+    token: "ghp_xxxxxxxxxxxx"
+    secret: "webhook-secret"
 EOF
 
 # Install with values
@@ -83,37 +84,40 @@ helm install my-atlantis atlantis/atlantis -f values.yaml
 **Personal Access Token:**
 
 ```yaml
-github:
-  user: "atlantis-bot"
-  token: "ghp_xxxxxxxxxxxx"
-  secret: "webhook-secret"
-orgAllowlist: "github.com/myorg/*"
+atlantis:
+  github:
+    user: "atlantis-bot"
+    token: "ghp_xxxxxxxxxxxx"
+    secret: "webhook-secret"
+  orgAllowlist: "github.com/myorg/*"
 ```
 
 **GitHub App (Recommended):**
 
 ```yaml
-githubApp:
-  id: "123456"
-  installationId: "78901234"
-  key: |
-    -----BEGIN PRIVATE KEY-----
-    MIIEpAIBAAKCAQEA...
-    -----END PRIVATE KEY-----
-github:
-  secret: "webhook-secret"
-orgAllowlist: "github.com/myorg/*"
+atlantis:
+  githubApp:
+    id: "123456"
+    installationId: "78901234"
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      MIIEpAIBAAKCAQEA...
+      -----END PRIVATE KEY-----
+  github:
+    secret: "webhook-secret"
+  orgAllowlist: "github.com/myorg/*"
 ```
 
 ### Basic Ingress Setup
 
 ```yaml
-ingress:
-  enabled: true
-  ingressClassName: "nginx"
-  host: atlantis.example.com
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+atlantis:
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    host: atlantis.example.com
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
 ```
 
 ---
@@ -238,22 +242,23 @@ healthCheck:
 # aws-production.yaml
 replicaCount: 2
 
-githubApp:
-  id: "123456"
-  installationId: "78901234"
-github:
-  secret: "webhook-secret"
+atlantis:
+  githubApp:
+    id: "123456"
+    installationId: "78901234"
+  github:
+    secret: "webhook-secret"
 
-orgAllowlist: "github.com/myorg/*"
+  orgAllowlist: "github.com/myorg/*"
 
-ingress:
-  enabled: true
-  ingressClassName: "alb"
-  host: atlantis.company.com
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:region:account:certificate/cert-id"
+  ingress:
+    enabled: true
+    ingressClassName: "alb"
+    host: atlantis.company.com
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:region:account:certificate/cert-id"
 
 persistence:
   enabled: true
@@ -265,17 +270,17 @@ monitoring:
   serviceMonitor:
     enabled: true
 
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
 podDisruptionBudget:
   enabled: true
   minAvailable: 1
-
-resources:
-  requests:
-    memory: "512Mi"
-    cpu: "200m"
-  limits:
-    memory: "1Gi"
-    cpu: "500m"
 ```
 
 **Deploy:**
@@ -298,20 +303,29 @@ helm install atlantis atlantis/atlantis -f aws-production.yaml
 # gke-production.yaml
 replicaCount: 2
 
-github:
-  user: "atlantis-bot"
-  token: "ghp_xxxxxxxxxxxx"
-  secret: "webhook-secret"
+atlantis:
+  github:
+    user: "atlantis-bot"
+    token: "ghp_xxxxxxxxxxxx"
+    secret: "webhook-secret"
 
-orgAllowlist: "github.com/myorg/*"
+  orgAllowlist: "github.com/myorg/*"
 
-ingress:
-  enabled: true
-  ingressClassName: "nginx"
-  host: atlantis.company.com
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    host: atlantis.company.com
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
 
 persistence:
   enabled: true
@@ -322,28 +336,22 @@ persistence:
 monitoring:
   serviceMonitor:
     enabled: true
-
-resources:
-  requests:
-    memory: "512Mi"
-    cpu: "200m"
-  limits:
-    memory: "1Gi"
-    cpu: "500m"
 ```
 
 ### Multi-Environment Setup
 
 ```yaml
 # base-values.yaml (shared)
-orgAllowlist: "github.com/myorg/*"
+atlantis:
+  orgAllowlist: "github.com/myorg/*"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+
 monitoring:
   serviceMonitor:
     enabled: true
-resources:
-  requests:
-    memory: "256Mi"
-    cpu: "100m"
 ```
 
 ```yaml

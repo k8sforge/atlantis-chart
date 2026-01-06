@@ -57,10 +57,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "atlantis.serviceAccountName" -}}
-{{- if .Values.atlantisConfig.serviceAccount.create }}
-{{- default (include "atlantis.fullname" .) .Values.atlantisConfig.serviceAccount.name }}
+{{- if .Values.atlantis.serviceAccount.create }}
+{{- default (include "atlantis.fullname" .) .Values.atlantis.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.atlantisConfig.serviceAccount.name }}
+{{- default "default" .Values.atlantis.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
@@ -73,41 +73,41 @@ The official chart handles the standard Deployment pod template
 metadata:
   labels:
     {{- include "atlantis.selectorLabels" . | nindent 4 }}
-    {{- with .Values.atlantisConfig.podLabels }}
+    {{- with .Values.atlantis.podLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- with .Values.atlantisConfig.podAnnotations }}
+  {{- with .Values.atlantis.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- with .Values.atlantisConfig.imagePullSecrets }}
+  {{- with .Values.atlantis.imagePullSecrets }}
   imagePullSecrets:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   serviceAccountName: {{ include "atlantis.serviceAccountName" . }}
   securityContext:
-    {{- toYaml .Values.atlantisConfig.podSecurityContext | nindent 4 }}
-  {{- with .Values.atlantisConfig.nodeSelector }}
+    {{- toYaml .Values.atlantis.podSecurityContext | nindent 4 }}
+  {{- with .Values.atlantis.nodeSelector }}
   nodeSelector:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.atlantisConfig.affinity }}
+  {{- with .Values.atlantis.affinity }}
   affinity:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.atlantisConfig.tolerations }}
+  {{- with .Values.atlantis.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   containers:
     - name: atlantis
       securityContext:
-        {{- toYaml .Values.atlantisConfig.securityContext | nindent 8 }}
-      image: "{{ .Values.atlantisConfig.image.repository }}:{{ .Values.atlantisConfig.image.tag | default .Chart.AppVersion }}"
-      imagePullPolicy: {{ .Values.atlantisConfig.image.pullPolicy }}
+        {{- toYaml .Values.atlantis.securityContext | nindent 8 }}
+      image: "{{ .Values.atlantis.image.repository }}:{{ .Values.atlantis.image.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.atlantis.image.pullPolicy }}
       ports:
-        - containerPort: {{ .Values.atlantisConfig.service.port }}
+        - containerPort: {{ .Values.atlantis.service.port }}
           name: http
       env:
         - name: ATLANTIS_DATA_DIR
@@ -117,7 +117,7 @@ spec:
             configMapKeyRef:
               name: {{ include "atlantis.fullname" . }}-config
               key: repo-allowlist
-        {{- if .Values.atlantisConfig.atlantisUrl }}
+        {{- if .Values.atlantis.atlantisUrl }}
         - name: ATLANTIS_ATLANTIS_URL
           valueFrom:
             configMapKeyRef:
@@ -129,28 +129,28 @@ spec:
             configMapKeyRef:
               name: {{ include "atlantis.fullname" . }}-config
               key: log-level
-        {{- if .Values.atlantisConfig.github.user }}
+        {{- if .Values.atlantis.github.user }}
         - name: ATLANTIS_GH_USER
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: github-user
         {{- end }}
-        {{- if .Values.atlantisConfig.github.token }}
+        {{- if .Values.atlantis.github.token }}
         - name: ATLANTIS_GH_TOKEN
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: github-token
         {{- end }}
-        {{- if .Values.atlantisConfig.github.secret }}
+        {{- if .Values.atlantis.github.secret }}
         - name: ATLANTIS_GH_WEBHOOK_SECRET
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: webhook-secret
         {{- end }}
-        {{- if .Values.atlantisConfig.githubApp.id }}
+        {{- if .Values.atlantis.githubApp.id }}
         - name: ATLANTIS_GH_APP_ID
           valueFrom:
             secretKeyRef:
@@ -159,18 +159,18 @@ spec:
         - name: ATLANTIS_GH_APP_KEY_FILE
           value: "/atlantis-data/github-app-key.pem"
         {{- end }}
-        {{- if .Values.atlantisConfig.githubApp.installationId }}
+        {{- if .Values.atlantis.githubApp.installationId }}
         - name: ATLANTIS_GH_APP_INSTALLATION_ID
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: github-app-installation-id
         {{- end }}
-        {{- range $key, $value := .Values.atlantisConfig.environment }}
+        {{- range $key, $value := .Values.atlantis.environment }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
-        {{- range .Values.atlantisConfig.environmentSecrets }}
+        {{- range .Values.atlantis.environmentSecrets }}
         - name: {{ .name }}
           valueFrom:
             secretKeyRef:
@@ -178,41 +178,41 @@ spec:
               key: {{ .secretKey }}
         {{- end }}
       resources:
-        {{- toYaml .Values.atlantisConfig.resources | nindent 8 }}
-      {{- if .Values.atlantisConfig.livenessProbe.enabled }}
+        {{- toYaml .Values.atlantis.resources | nindent 8 }}
+      {{- if .Values.atlantis.livenessProbe.enabled }}
       livenessProbe:
         httpGet:
-          path: {{ .Values.atlantisConfig.livenessProbe.path }}
+          path: {{ .Values.atlantis.livenessProbe.path }}
           port: http
-          scheme: {{ .Values.atlantisConfig.livenessProbe.scheme }}
-        initialDelaySeconds: {{ .Values.atlantisConfig.livenessProbe.initialDelaySeconds }}
-        periodSeconds: {{ .Values.atlantisConfig.livenessProbe.periodSeconds }}
-        timeoutSeconds: {{ .Values.atlantisConfig.livenessProbe.timeoutSeconds }}
-        successThreshold: {{ .Values.atlantisConfig.livenessProbe.successThreshold }}
-        failureThreshold: {{ .Values.atlantisConfig.livenessProbe.failureThreshold }}
+          scheme: {{ .Values.atlantis.livenessProbe.scheme }}
+        initialDelaySeconds: {{ .Values.atlantis.livenessProbe.initialDelaySeconds }}
+        periodSeconds: {{ .Values.atlantis.livenessProbe.periodSeconds }}
+        timeoutSeconds: {{ .Values.atlantis.livenessProbe.timeoutSeconds }}
+        successThreshold: {{ .Values.atlantis.livenessProbe.successThreshold }}
+        failureThreshold: {{ .Values.atlantis.livenessProbe.failureThreshold }}
       {{- end }}
-      {{- if .Values.atlantisConfig.readinessProbe.enabled }}
+      {{- if .Values.atlantis.readinessProbe.enabled }}
       readinessProbe:
         httpGet:
-          path: {{ .Values.atlantisConfig.readinessProbe.path }}
+          path: {{ .Values.atlantis.readinessProbe.path }}
           port: http
-          scheme: {{ .Values.atlantisConfig.readinessProbe.scheme }}
-        initialDelaySeconds: {{ .Values.atlantisConfig.readinessProbe.initialDelaySeconds }}
-        periodSeconds: {{ .Values.atlantisConfig.readinessProbe.periodSeconds }}
-        timeoutSeconds: {{ .Values.atlantisConfig.readinessProbe.timeoutSeconds }}
-        successThreshold: {{ .Values.atlantisConfig.readinessProbe.successThreshold }}
-        failureThreshold: {{ .Values.atlantisConfig.readinessProbe.failureThreshold }}
+          scheme: {{ .Values.atlantis.readinessProbe.scheme }}
+        initialDelaySeconds: {{ .Values.atlantis.readinessProbe.initialDelaySeconds }}
+        periodSeconds: {{ .Values.atlantis.readinessProbe.periodSeconds }}
+        timeoutSeconds: {{ .Values.atlantis.readinessProbe.timeoutSeconds }}
+        successThreshold: {{ .Values.atlantis.readinessProbe.successThreshold }}
+        failureThreshold: {{ .Values.atlantis.readinessProbe.failureThreshold }}
       {{- end }}
       volumeMounts:
         - name: atlantis-data
           mountPath: /atlantis-data
-        {{- if .Values.atlantisConfig.githubApp.key }}
+        {{- if .Values.atlantis.githubApp.key }}
         - name: github-app-key
           mountPath: /atlantis-data/github-app-key.pem
           subPath: github-app-key.pem
           readOnly: true
         {{- end }}
-        {{- range .Values.atlantisConfig.extraVolumeMounts }}
+        {{- range .Values.atlantis.extraVolumeMounts }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
           {{- if .subPath }}
@@ -235,7 +235,7 @@ spec:
       {{- else }}
       emptyDir: {}
       {{- end }}
-    {{- if .Values.atlantisConfig.githubApp.key }}
+    {{- if .Values.atlantis.githubApp.key }}
     - name: github-app-key
       secret:
         secretName: {{ include "atlantis.fullname" . }}-secrets
@@ -243,7 +243,7 @@ spec:
           - key: github-app-key
             path: github-app-key.pem
     {{- end }}
-    {{- range .Values.atlantisConfig.extraVolumes }}
+    {{- range .Values.atlantis.extraVolumes }}
     - name: {{ .name }}
       {{- if .configMap }}
       configMap:
@@ -317,212 +317,8 @@ Uses replica count from chart configuration
 {{- end }}
 {{- end }}
 
-{{/*
-Conditional replica count for official chart
-When using Rollouts, disable the official chart's deployment by setting replicas to 0
-*/}}
-{{- define "atlantis.officialChartReplicaCount" -}}
-{{- if eq .Values.deployment.type "rollout" }}
-0
-{{- else }}
-{{ .Values.atlantisConfig.replicaCount }}
-{{- end }}
-{{- end }}
 
-{{/*
-Value transformation helper for official chart compatibility
-Filters and transforms atlantisConfig: values to be compatible with the official chart schema
-*/}}
-{{- define "atlantis.officialChartValues" -}}
-# Core configuration - pass as-is
-{{- if .Values.atlantisConfig.orgAllowlist }}
-orgAllowlist: {{ .Values.atlantisConfig.orgAllowlist | quote }}
-{{- end }}
-{{- if .Values.atlantisConfig.atlantisUrl }}
-atlantisUrl: {{ .Values.atlantisConfig.atlantisUrl | quote }}
-{{- end }}
-{{- if .Values.atlantisConfig.logLevel }}
-logLevel: {{ .Values.atlantisConfig.logLevel | quote }}
-{{- end }}
 
-# Authentication - pass as-is
-{{- if .Values.atlantisConfig.github }}
-github:
-{{- toYaml .Values.atlantisConfig.github | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.githubApp }}
-githubApp:
-{{- toYaml .Values.atlantisConfig.githubApp | nindent 2 }}
-{{- end }}
-
-# Image configuration - pass as-is
-{{- if .Values.atlantisConfig.image }}
-image:
-{{- toYaml .Values.atlantisConfig.image | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.imagePullSecrets }}
-imagePullSecrets:
-{{- toYaml .Values.atlantisConfig.imagePullSecrets | nindent 2 }}
-{{- end }}
-
-# Replica count - use conditional value
-replicaCount: {{ include "atlantis.officialChartReplicaCount" . }}
-
-# Service configuration - pass as-is
-{{- if .Values.atlantisConfig.service }}
-service:
-{{- toYaml .Values.atlantisConfig.service | nindent 2 }}
-{{- end }}
-
-# Ingress configuration - pass as-is
-{{- if .Values.atlantisConfig.ingress }}
-ingress:
-{{- toYaml .Values.atlantisConfig.ingress | nindent 2 }}
-{{- end }}
-
-# Resources - pass as-is
-{{- if .Values.atlantisConfig.resources }}
-resources:
-{{- toYaml .Values.atlantisConfig.resources | nindent 2 }}
-{{- end }}
-
-# Node scheduling - pass as-is
-{{- if .Values.atlantisConfig.nodeSelector }}
-nodeSelector:
-{{- toYaml .Values.atlantisConfig.nodeSelector | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.tolerations }}
-tolerations:
-{{- toYaml .Values.atlantisConfig.tolerations | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.affinity }}
-affinity:
-{{- toYaml .Values.atlantisConfig.affinity | nindent 2 }}
-{{- end }}
-
-# Service account - pass as-is
-{{- if .Values.atlantisConfig.serviceAccount }}
-serviceAccount:
-{{- toYaml .Values.atlantisConfig.serviceAccount | nindent 2 }}
-{{- end }}
-
-# Environment - pass as-is
-{{- if .Values.atlantisConfig.environment }}
-environment:
-{{- toYaml .Values.atlantisConfig.environment | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.environmentSecrets }}
-environmentSecrets:
-{{- toYaml .Values.atlantisConfig.environmentSecrets | nindent 2 }}
-{{- end }}
-
-# Container command - pass as-is
-{{- if .Values.atlantisConfig.command }}
-command:
-{{- toYaml .Values.atlantisConfig.command | nindent 2 }}
-{{- end }}
-
-# TRANSFORM: dataStorage object → string for official chart compatibility
-# CRITICAL: Official chart expects dataStorage as a STRING, not object
-# This transformation ALWAYS produces a string, never an object
-{{- $dataStorageValue := "" }}
-{{- if and .Values.atlantisConfig.dataStorage .Values.atlantisConfig.dataStorage.enabled }}
-  {{- if .Values.atlantisConfig.dataStorage.size }}
-    {{- $dataStorageValue = (.Values.atlantisConfig.dataStorage.size | toString) }}
-  {{- else }}
-    {{- $dataStorageValue = "10Gi" }}
-  {{- end }}
-{{- end }}
-dataStorage: {{ $dataStorageValue | quote }}
-
-# Probes - filter out enhanced properties, keep only official chart compatible ones
-{{- if .Values.atlantisConfig.livenessProbe }}
-livenessProbe:
-  enabled: {{ .Values.atlantisConfig.livenessProbe.enabled }}
-  periodSeconds: {{ .Values.atlantisConfig.livenessProbe.periodSeconds }}
-  initialDelaySeconds: {{ .Values.atlantisConfig.livenessProbe.initialDelaySeconds }}
-  timeoutSeconds: {{ .Values.atlantisConfig.livenessProbe.timeoutSeconds }}
-  successThreshold: {{ .Values.atlantisConfig.livenessProbe.successThreshold }}
-  failureThreshold: {{ .Values.atlantisConfig.livenessProbe.failureThreshold }}
-{{- end }}
-{{- if .Values.atlantisConfig.readinessProbe }}
-readinessProbe:
-  enabled: {{ .Values.atlantisConfig.readinessProbe.enabled }}
-  periodSeconds: {{ .Values.atlantisConfig.readinessProbe.periodSeconds }}
-  initialDelaySeconds: {{ .Values.atlantisConfig.readinessProbe.initialDelaySeconds }}
-  timeoutSeconds: {{ .Values.atlantisConfig.readinessProbe.timeoutSeconds }}
-  successThreshold: {{ .Values.atlantisConfig.readinessProbe.successThreshold }}
-  failureThreshold: {{ .Values.atlantisConfig.readinessProbe.failureThreshold }}
-{{- end }}
-
-# Volume configuration - only pass supported properties
-{{- if .Values.atlantisConfig.extraVolumes }}
-extraVolumes:
-{{- toYaml .Values.atlantisConfig.extraVolumes | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.extraVolumeMounts }}
-extraVolumeMounts:
-{{- toYaml .Values.atlantisConfig.extraVolumeMounts | nindent 2 }}
-{{- end }}
-
-# Container configuration - only pass supported properties
-{{- if .Values.atlantisConfig.initContainers }}
-initContainers:
-{{- toYaml .Values.atlantisConfig.initContainers | nindent 2 }}
-{{- end }}
-{{- if .Values.atlantisConfig.extraContainers }}
-extraContainers:
-{{- toYaml .Values.atlantisConfig.extraContainers | nindent 2 }}
-{{- end }}
-
-# EXPLICITLY EXCLUDED PROPERTIES (not supported by official chart):
-# The following properties are intentionally NOT included in the transformation
-# to ensure compatibility with the official Atlantis chart schema:
-
-# EXCLUDED: Enhanced wrapper properties (not supported by official chart)
-# - podLabels: Use deployment.type="rollout" for enhanced pod labels
-# - podAnnotations: Use deployment.type="rollout" for enhanced pod annotations
-# - podSecurityContext: Use deployment.type="rollout" for enhanced security contexts
-# - securityContext: Use deployment.type="rollout" for enhanced security contexts
-# - volumeClaim: Array format not compatible with official chart
-# - statefulSet: Not supported by official Atlantis chart
-# - disruptionBudget: Wrapper provides enhanced PDB instead
-# - livenessProbe.path/scheme: Enhanced probe properties not supported
-# - readinessProbe.path/scheme: Enhanced probe properties not supported
-
-# These properties are available in atlantisConfig: for wrapper features
-# but are filtered out from the atlantis: section passed to the subchart.
-{{- end }}
-
-{{/*
-Validation helper for subchart compatibility
-Warns users about incompatible value combinations when using official chart deployment
-*/}}
-{{- define "atlantis.validateSubchartCompatibility" -}}
-{{- if eq .Values.deployment.type "deployment" }}
-{{- if .Values.atlantisConfig.podLabels }}
-{{- fail "ERROR: podLabels are not supported by the official Atlantis chart when deployment.type='deployment'. Use deployment.type='rollout' for enhanced pod label support, or remove podLabels configuration." }}
-{{- end }}
-{{- if .Values.atlantisConfig.podAnnotations }}
-{{- fail "ERROR: podAnnotations are not supported by the official Atlantis chart when deployment.type='deployment'. Use deployment.type='rollout' for enhanced pod annotation support, or remove podAnnotations configuration." }}
-{{- end }}
-{{- if .Values.atlantisConfig.podSecurityContext }}
-{{- fail "ERROR: podSecurityContext is not supported by the official Atlantis chart when deployment.type='deployment'. Use deployment.type='rollout' for enhanced security context support, or remove podSecurityContext configuration." }}
-{{- end }}
-{{- if .Values.atlantisConfig.securityContext }}
-{{- fail "ERROR: securityContext is not supported by the official Atlantis chart when deployment.type='deployment'. Use deployment.type='rollout' for enhanced security context support, or remove securityContext configuration." }}
-{{- end }}
-{{- if and .Values.atlantisConfig.livenessProbe.enabled (or .Values.atlantisConfig.livenessProbe.path .Values.atlantisConfig.livenessProbe.scheme) }}
-{{- fail "ERROR: livenessProbe 'path' and 'scheme' properties are not supported by the official Atlantis chart when deployment.type='deployment'. Use deployment.type='rollout' for enhanced probe support, or use only basic probe properties (enabled, periodSeconds, etc.)." }}
-{{- end }}
-{{- if and .Values.atlantisConfig.readinessProbe.enabled (or .Values.atlantisConfig.readinessProbe.path .Values.atlantisConfig.readinessProbe.scheme) }}
-{{- fail "ERROR: readinessProbe 'path' and 'scheme' properties are not supported by the official Atlantis chart when deployment.type='deployment'. Use deployment.type='rollout' for enhanced probe support, or use only basic probe properties (enabled, periodSeconds, etc.)." }}
-{{- end }}
-{{- if and .Values.atlantisConfig.dataStorage (ne .Values.atlantisConfig.dataStorage.enabled false) (not .Values.atlantisConfig.dataStorage.size) }}
-{{- fail "ERROR: When dataStorage.enabled=true, dataStorage.size must be specified for compatibility with the official Atlantis chart." }}
-{{- end }}
-{{- end }}
-{{- end }}
 
 {{/*
 Validation helper for deployment type configuration
@@ -554,7 +350,7 @@ Validates persistence configuration for compatibility
 {{- if eq .Values.deployment.type "rollout" }}
 {{- $replicaCount = .Values.replicaCount }}
 {{- else }}
-{{- $replicaCount = .Values.atlantisConfig.replicaCount }}
+{{- $replicaCount = .Values.atlantis.replicaCount }}
 {{- end }}
 {{- if and (gt ($replicaCount | int) 1) (not .Values.persistence.efs.storageClass) (not .Values.persistence.storageClass) }}
 {{- fail "ERROR: Multi-replica deployment (replicaCount > 1) with persistence requires EFS storage. Set persistence.efs.storageClass or persistence.storageClass for ReadWriteMany support." }}
@@ -565,119 +361,4 @@ Validates persistence configuration for compatibility
 {{- end }}
 {{- end }}
 
-{{/*
-Validation helper for transformation output
-Ensures that subchart values are properly formatted and compatible
-*/}}
-{{- define "atlantis.validateTransformation" -}}
-{{/* Validate dataStorage is always a string */}}
-{{- if .Values.atlantis.dataStorage }}
-  {{- if not (kindIs "string" .Values.atlantis.dataStorage) }}
-    {{- fail "ERROR: atlantis.dataStorage must be a string value for official chart compatibility. Current type is not string." }}
-  {{- end }}
-{{- end }}
-
-{{/* Validate no double-nesting in atlantis section */}}
-{{- if .Values.atlantis.atlantis }}
-  {{- fail "ERROR: Double-nesting detected (atlantis.atlantis.*). Check value transformation logic for nested atlantis keys." }}
-{{- end }}
-
-{{/* Validate unsupported properties are not present */}}
-{{- if .Values.atlantis.podLabels }}
-  {{- fail "ERROR: atlantis.podLabels should not be passed to official chart. Use atlantisConfig.podLabels instead." }}
-{{- end }}
-{{- if .Values.atlantis.podAnnotations }}
-  {{- fail "ERROR: atlantis.podAnnotations should not be passed to official chart. Use atlantisConfig.podAnnotations instead." }}
-{{- end }}
-{{- if .Values.atlantis.podSecurityContext }}
-  {{- fail "ERROR: atlantis.podSecurityContext should not be passed to official chart. Use atlantisConfig.podSecurityContext instead." }}
-{{- end }}
-{{- if .Values.atlantis.securityContext }}
-  {{- fail "ERROR: atlantis.securityContext should not be passed to official chart. Use atlantisConfig.securityContext instead." }}
-{{- end }}
-{{- if .Values.atlantis.statefulSet }}
-  {{- fail "ERROR: atlantis.statefulSet should not be passed to official chart. Property not supported by official chart." }}
-{{- end }}
-
-{{/* Validate environment variables are properly typed */}}
-{{- if .Values.atlantis.environment }}
-  {{- if not (kindIs "map" .Values.atlantis.environment) }}
-    {{- fail "ERROR: atlantis.environment must be a map/object of key-value pairs." }}
-  {{- end }}
-  {{- range $key, $value := .Values.atlantis.environment }}
-    {{- if not (kindIs "string" $value) }}
-      {{- fail (printf "ERROR: atlantis.environment.%s must be a string value. Current value: %v" $key $value) }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-
-{{/* Validate replica count is an integer */}}
-{{- if .Values.atlantis.replicaCount }}
-  {{- if not (kindIs "float64" .Values.atlantis.replicaCount) }}
-    {{- fail "ERROR: atlantis.replicaCount must be an integer value." }}
-  {{- end }}
-  {{- if lt (.Values.atlantis.replicaCount | int) 0 }}
-    {{- fail "ERROR: atlantis.replicaCount must be non-negative." }}
-  {{- end }}
-{{- end }}
-
-{{/* Validate service port is an integer */}}
-{{- if and .Values.atlantis.service .Values.atlantis.service.port }}
-  {{- if not (kindIs "float64" .Values.atlantis.service.port) }}
-    {{- fail "ERROR: atlantis.service.port must be an integer value." }}
-  {{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-Validate that the transformation output is correct and compatible
-with the official Atlantis chart schema.
-*/}}
-{{- define "atlantis.validateTransformation" -}}
-{{- $officialValues := include "atlantis.officialChartValues" . | fromYaml }}
-
-{{/* Ensure dataStorage is always a string, never an object */}}
-{{- if not (kindOf $officialValues.dataStorage | eq "string") }}
-{{- fail "ERROR: dataStorage in the transformed official chart values must be a string." }}
-{{- end }}
-
-{{/* Ensure no unsupported properties are present */}}
-{{- if hasKey $officialValues "podLabels" }}
-{{- fail "ERROR: podLabels should not be present in the transformed official chart values." }}
-{{- end }}
-{{- if hasKey $officialValues "podAnnotations" }}
-{{- fail "ERROR: podAnnotations should not be present in the transformed official chart values." }}
-{{- end }}
-{{- if hasKey $officialValues "podSecurityContext" }}
-{{- fail "ERROR: podSecurityContext should not be present in the transformed official chart values." }}
-{{- end }}
-{{- if hasKey $officialValues "securityContext" }}
-{{- fail "ERROR: securityContext should not be present in the transformed official chart values." }}
-{{- end }}
-{{- if hasKey $officialValues "statefulSet" }}
-{{- fail "ERROR: statefulSet should not be present in the transformed official chart values." }}
-{{- end }}
-{{- if hasKey $officialValues "disruptionBudget" }}
-{{- fail "ERROR: disruptionBudget should not be present in the transformed official chart values." }}
-{{- end }}
-{{- if hasKey $officialValues "volumeClaim" }}
-{{- fail "ERROR: volumeClaim should not be present in the transformed official chart values." }}
-{{- end }}
-
-{{/* Ensure no double-nesting */}}
-{{- if hasKey $officialValues "atlantis" }}
-{{- fail "ERROR: Double-nesting detected in transformation output (atlantis.atlantis). Check transformation logic." }}
-{{- end }}
-{{- end }}
-
-{{/*
-Validation helper for overall chart configuration
-Runs all validations to ensure proper configuration
-*/}}
-{{- define "atlantis.validateAll" -}}
-{{- include "atlantis.validateSubchartCompatibility" . }}
-{{- include "atlantis.validateDeploymentType" . }}
-{{- include "atlantis.validateEnhancedStorage" . }}
-{{- include "atlantis.validateTransformation" . }}
-{{- end }}
 

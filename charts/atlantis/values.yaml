@@ -76,15 +76,15 @@ persistence:
   # Optional: existing claim name (bypasses all auto-selection)
   existingClaim: ""
 
-##########################################################
-# OFFICIAL ATLANTIS CHART CONFIGURATION (PASS-THROUGH) #
-##########################################################
+####################################################################
+# OFFICIAL ATLANTIS CHART CONFIGURATION (DIRECT PASS-THROUGH)    #
+####################################################################
 
-# The 'atlantisConfig:' section contains the enhanced configuration used by
-# wrapper templates. These values are filtered and transformed before being
-# passed to the official Atlantis chart dependency via the 'atlantis:' section.
+# The 'atlantis:' section contains values that are passed directly to the
+# official Atlantis chart. No complex transformation is performed.
+# Configure these values as you would for the official chart.
 
-atlantisConfig:
+atlantis:
   # Replace this with your own repo allowlist
   orgAllowlist: "github.com/myorg/*"
 
@@ -120,8 +120,7 @@ atlantisConfig:
   # Image pull secrets
   imagePullSecrets: []
 
-  # Replica count (affects storage auto-selection)
-  # Note: This is conditionally set to 0 when deployment.type="rollout"
+  # Replica count - set this to 0 when using deployment.type="rollout"
   # to prevent conflicts between Rollout and Deployment resources
   replicaCount: 1
 
@@ -181,8 +180,7 @@ atlantisConfig:
     # The name of the service account to use.
     name: ""
 
-  # Environment variables - THIS IS KEY FOR THE FIX
-  # These will now be properly passed to the official chart
+  # Environment variables
   environmentSecrets: []
   environment: {}
   # Example:
@@ -194,9 +192,8 @@ atlantisConfig:
   # Container command
   command: []
 
-  # Data storage (handled by our enhanced persistence above when enabled)
-  dataStorage:
-    enabled: false
+  # Data storage - simple string value for official chart compatibility
+  dataStorage: ""
 
   # Liveness probe
   livenessProbe:
@@ -206,8 +203,6 @@ atlantisConfig:
     timeoutSeconds: 5
     successThreshold: 1
     failureThreshold: 5
-    scheme: HTTP
-    path: /healthz
 
   # Readiness probe
   readinessProbe:
@@ -217,11 +212,6 @@ atlantisConfig:
     timeoutSeconds: 5
     successThreshold: 1
     failureThreshold: 5
-    scheme: HTTP
-    path: /healthz
-
-  # Volume mounts
-  volumeClaim: []
 
   # Additional volumes
   extraVolumes: []
@@ -232,28 +222,3 @@ atlantisConfig:
 
   # Extra containers
   extraContainers: []
-
-  # Stateful set configuration
-  statefulSet:
-    enabled: false
-
-  # Disable default PDB from official chart (we provide enhanced version)
-  disruptionBudget:
-    enabled: false
-
-####################################################################
-# OFFICIAL ATLANTIS CHART VALUES (DYNAMIC - DO NOT EDIT)         #
-####################################################################
-
-# The 'atlantis:' section contains minimal default values that are dynamically
-# populated by the value transformation system. These values will be overridden
-# at render time with properly filtered values from atlantisConfig: section.
-#
-# WARNING: Do not manually edit these values - they will be replaced by
-# the transformation helper during chart rendering.
-
-atlantis:
-  # Minimal required defaults - will be overridden by transformation
-  orgAllowlist: ""
-  dataStorage: ""
-  replicaCount: 1
