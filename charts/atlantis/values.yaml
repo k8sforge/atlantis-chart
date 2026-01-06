@@ -99,6 +99,9 @@ atlantis:
   # Log level for Atlantis (required by schema validation)
   logLevel: "info"
 
+  # Number of Atlantis replicas
+  replicaCount: 1
+
   # GitHub authentication (Personal Access Token)
   # IMPORTANT: Replace these placeholder values with your actual credentials
   github:
