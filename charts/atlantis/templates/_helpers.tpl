@@ -57,10 +57,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "atlantis.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "atlantis.fullname" .) .Values.serviceAccount.name }}
+{{- if .Values.atlantis.serviceAccount.create }}
+{{- default (include "atlantis.fullname" .) .Values.atlantis.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- default "default" .Values.atlantis.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
@@ -73,38 +73,41 @@ The official chart handles the standard Deployment pod template
 metadata:
   labels:
     {{- include "atlantis.selectorLabels" . | nindent 4 }}
-  {{- with .Values.podAnnotations }}
+    {{- with .Values.atlantis.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.atlantis.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- with .Values.imagePullSecrets }}
+  {{- with .Values.atlantis.imagePullSecrets }}
   imagePullSecrets:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   serviceAccountName: {{ include "atlantis.serviceAccountName" . }}
   securityContext:
-    {{- toYaml .Values.podSecurityContext | nindent 4 }}
-  {{- with .Values.nodeSelector }}
+    {{- toYaml .Values.atlantis.podSecurityContext | nindent 4 }}
+  {{- with .Values.atlantis.nodeSelector }}
   nodeSelector:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.affinity }}
+  {{- with .Values.atlantis.affinity }}
   affinity:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.tolerations }}
+  {{- with .Values.atlantis.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   containers:
     - name: atlantis
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
-      image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-      imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- toYaml .Values.atlantis.securityContext | nindent 8 }}
+      image: "{{ .Values.atlantis.image.repository }}:{{ .Values.atlantis.image.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.atlantis.image.pullPolicy }}
       ports:
-        - containerPort: {{ .Values.service.port }}
+        - containerPort: {{ .Values.atlantis.service.port }}
           name: http
       env:
         - name: ATLANTIS_DATA_DIR
@@ -114,7 +117,7 @@ spec:
             configMapKeyRef:
               name: {{ include "atlantis.fullname" . }}-config
               key: repo-allowlist
-        {{- if .Values.atlantisUrl }}
+        {{- if .Values.atlantis.atlantisUrl }}
         - name: ATLANTIS_ATLANTIS_URL
           valueFrom:
             configMapKeyRef:
@@ -126,28 +129,28 @@ spec:
             configMapKeyRef:
               name: {{ include "atlantis.fullname" . }}-config
               key: log-level
-        {{- if .Values.github.user }}
+        {{- if .Values.atlantis.github.user }}
         - name: ATLANTIS_GH_USER
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: github-user
         {{- end }}
-        {{- if .Values.github.token }}
+        {{- if .Values.atlantis.github.token }}
         - name: ATLANTIS_GH_TOKEN
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: github-token
         {{- end }}
-        {{- if .Values.github.secret }}
+        {{- if .Values.atlantis.github.secret }}
         - name: ATLANTIS_GH_WEBHOOK_SECRET
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: webhook-secret
         {{- end }}
-        {{- if .Values.githubApp.id }}
+        {{- if .Values.atlantis.githubApp.id }}
         - name: ATLANTIS_GH_APP_ID
           valueFrom:
             secretKeyRef:
@@ -156,18 +159,18 @@ spec:
         - name: ATLANTIS_GH_APP_KEY_FILE
           value: "/atlantis-data/github-app-key.pem"
         {{- end }}
-        {{- if .Values.githubApp.installationId }}
+        {{- if .Values.atlantis.githubApp.installationId }}
         - name: ATLANTIS_GH_APP_INSTALLATION_ID
           valueFrom:
             secretKeyRef:
               name: {{ include "atlantis.fullname" . }}-secrets
               key: github-app-installation-id
         {{- end }}
-        {{- range $key, $value := .Values.environment }}
+        {{- range $key, $value := .Values.atlantis.environment }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
-        {{- range .Values.environmentSecrets }}
+        {{- range .Values.atlantis.environmentSecrets }}
         - name: {{ .name }}
           valueFrom:
             secretKeyRef:
@@ -175,41 +178,41 @@ spec:
               key: {{ .secretKey }}
         {{- end }}
       resources:
-        {{- toYaml .Values.resources | nindent 8 }}
-      {{- if .Values.livenessProbe.enabled }}
+        {{- toYaml .Values.atlantis.resources | nindent 8 }}
+      {{- if .Values.atlantis.livenessProbe.enabled }}
       livenessProbe:
         httpGet:
-          path: {{ .Values.livenessProbe.path }}
+          path: {{ .Values.atlantis.livenessProbe.path }}
           port: http
-          scheme: {{ .Values.livenessProbe.scheme }}
-        initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-        periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-        timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
-        successThreshold: {{ .Values.livenessProbe.successThreshold }}
-        failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          scheme: {{ .Values.atlantis.livenessProbe.scheme }}
+        initialDelaySeconds: {{ .Values.atlantis.livenessProbe.initialDelaySeconds }}
+        periodSeconds: {{ .Values.atlantis.livenessProbe.periodSeconds }}
+        timeoutSeconds: {{ .Values.atlantis.livenessProbe.timeoutSeconds }}
+        successThreshold: {{ .Values.atlantis.livenessProbe.successThreshold }}
+        failureThreshold: {{ .Values.atlantis.livenessProbe.failureThreshold }}
       {{- end }}
-      {{- if .Values.readinessProbe.enabled }}
+      {{- if .Values.atlantis.readinessProbe.enabled }}
       readinessProbe:
         httpGet:
-          path: {{ .Values.readinessProbe.path }}
+          path: {{ .Values.atlantis.readinessProbe.path }}
           port: http
-          scheme: {{ .Values.readinessProbe.scheme }}
-        initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-        periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-        timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
-        successThreshold: {{ .Values.readinessProbe.successThreshold }}
-        failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          scheme: {{ .Values.atlantis.readinessProbe.scheme }}
+        initialDelaySeconds: {{ .Values.atlantis.readinessProbe.initialDelaySeconds }}
+        periodSeconds: {{ .Values.atlantis.readinessProbe.periodSeconds }}
+        timeoutSeconds: {{ .Values.atlantis.readinessProbe.timeoutSeconds }}
+        successThreshold: {{ .Values.atlantis.readinessProbe.successThreshold }}
+        failureThreshold: {{ .Values.atlantis.readinessProbe.failureThreshold }}
       {{- end }}
       volumeMounts:
         - name: atlantis-data
           mountPath: /atlantis-data
-        {{- if .Values.githubApp.key }}
+        {{- if .Values.atlantis.githubApp.key }}
         - name: github-app-key
           mountPath: /atlantis-data/github-app-key.pem
           subPath: github-app-key.pem
           readOnly: true
         {{- end }}
-        {{- range .Values.extraVolumeMounts }}
+        {{- range .Values.atlantis.extraVolumeMounts }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
           {{- if .subPath }}
@@ -232,7 +235,7 @@ spec:
       {{- else }}
       emptyDir: {}
       {{- end }}
-    {{- if .Values.githubApp.key }}
+    {{- if .Values.atlantis.githubApp.key }}
     - name: github-app-key
       secret:
         secretName: {{ include "atlantis.fullname" . }}-secrets
@@ -240,7 +243,7 @@ spec:
           - key: github-app-key
             path: github-app-key.pem
     {{- end }}
-    {{- range .Values.extraVolumes }}
+    {{- range .Values.atlantis.extraVolumes }}
     - name: {{ .name }}
       {{- if .configMap }}
       configMap:
@@ -311,6 +314,18 @@ Uses replica count from chart configuration
 {{- if and (gt $replicaCount 1) (ne $accessMode "ReadWriteMany") }}
 {{- fail "ERROR: Multi-replica deployment (replicaCount > 1) with persistence requires ReadWriteMany access mode. Either set replicaCount=1, disable persistence, use persistence.accessModes=[\"ReadWriteMany\"], or configure EFS storage." }}
 {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Conditional replica count for official chart
+When using Rollouts, disable the official chart's deployment by setting replicas to 0
+*/}}
+{{- define "atlantis.officialChartReplicaCount" -}}
+{{- if eq .Values.deployment.type "rollout" }}
+0
+{{- else }}
+{{ .Values.atlantis.replicaCount }}
 {{- end }}
 {{- end }}
 

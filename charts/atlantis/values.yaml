@@ -9,6 +9,10 @@
 # ENHANCED FEATURES (TOP LEVEL) #
 #################################
 
+# Replica count for enhanced features (Rollouts, etc.)
+# This controls the number of replicas for Rollout resources
+replicaCount: 1
+
 # Enhanced deployment configuration with Argo Rollouts support
 deployment:
   # Type: "deployment" for official chart Deployment, "rollout" for Argo Rollouts
@@ -72,157 +76,167 @@ persistence:
   # Optional: existing claim name (bypasses all auto-selection)
   existingClaim: ""
 
-#################################################
-# OFFICIAL CHART CONFIGURATION (PASS-THROUGH) #
-#################################################
+##########################################################
+# OFFICIAL ATLANTIS CHART CONFIGURATION (PASS-THROUGH) #
+##########################################################
 
-# All configuration below is passed through to the official Atlantis chart
-# This follows the official chart's values.yaml structure exactly
+# All values under the 'atlantis:' key are passed directly to the official
+# Atlantis chart dependency. This enables proper value pass-through while
+# keeping our enhanced features at the top level.
 
-# Replace this with your own repo allowlist
-orgAllowlist: "github.com/myorg/*"
+atlantis:
+  # Replace this with your own repo allowlist
+  orgAllowlist: "github.com/myorg/*"
 
-# Atlantis URL (if not using ingress)
-atlantisUrl: ""
+  # Atlantis URL (if not using ingress)
+  atlantisUrl: ""
 
-# Log level: debug, info, warn, or error
-logLevel: "info"
+  # Log level: debug, info, warn, or error
+  logLevel: "info"
 
-# GitHub configuration
-github: {}
-# github:
-#   user: myuser
-#   token: mytoken
-#   secret: mysecret
+  # GitHub configuration
+  github: {}
+  # github:
+  #   user: myuser
+  #   token: mytoken
+  #   secret: mysecret
 
-# GitHub App configuration (alternative to user/token)
-githubApp: {}
-# githubApp:
-#   id: 123456
-#   slug: myapp
-#   key: |
-#     -----BEGIN PRIVATE KEY-----
-#     ...
-#     -----END PRIVATE KEY-----
+  # GitHub App configuration (alternative to user/token)
+  githubApp: {}
+  # githubApp:
+  #   id: 123456
+  #   slug: myapp
+  #   key: |
+  #     -----BEGIN PRIVATE KEY-----
+  #     ...
+  #     -----END PRIVATE KEY-----
 
-# Image configuration
-image:
-  repository: runatlantis/atlantis
-  tag: latest
-  pullPolicy: IfNotPresent
+  # Image configuration
+  image:
+    repository: runatlantis/atlantis
+    tag: latest
+    pullPolicy: IfNotPresent
 
-# Image pull secrets
-imagePullSecrets: []
+  # Image pull secrets
+  imagePullSecrets: []
 
-# Replica count (affects storage auto-selection)
-replicaCount: 1
+  # Replica count (affects storage auto-selection)
+  # Note: This is conditionally set to 0 when deployment.type="rollout"
+  # to prevent conflicts between Rollout and Deployment resources
+  replicaCount: 1
 
-# Service configuration
-service:
-  type: ClusterIP
-  port: 4141
-  targetPort: 4141
-  loadBalancerIP: null
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 4141
+    targetPort: 4141
+    loadBalancerIP: null
 
-# Ingress configuration
-ingress:
-  enabled: false
-  ingressClassName: ""
-  annotations: {}
-  path: /
-  pathType: Prefix
-  host: atlantis.example.com
-  tls: []
+  # Ingress configuration
+  ingress:
+    enabled: false
+    ingressClassName: ""
+    annotations: {}
+    path: /
+    pathType: Prefix
+    host: atlantis.example.com
+    tls: []
 
-# Resource limits and requests
-resources:
-  limits:
-    memory: 1Gi
-    cpu: 100m
-  requests:
-    memory: 512Mi
-    cpu: 100m
+  # Resource limits and requests
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 100m
+    requests:
+      memory: 512Mi
+      cpu: 100m
 
-# Node selector
-nodeSelector: {}
+  # Node selector
+  nodeSelector: {}
 
-# Tolerations
-tolerations: []
+  # Tolerations
+  tolerations: []
 
-# Affinity
-affinity: {}
+  # Affinity
+  affinity: {}
 
-# Pod annotations
-podAnnotations: {}
+  # Pod annotations
+  podAnnotations: {}
 
-# Pod labels
-podLabels: {}
+  # Pod labels
+  podLabels: {}
 
-# Security context
-securityContext: {}
+  # Security context
+  securityContext: {}
 
-# Pod security context
-podSecurityContext: {}
+  # Pod security context
+  podSecurityContext: {}
 
-# Service account
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  name: ""
+  # Service account
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    name: ""
 
-# Environment variables
-environmentSecrets: []
-environment: {}
+  # Environment variables - THIS IS KEY FOR THE FIX
+  # These will now be properly passed to the official chart
+  environmentSecrets: []
+  environment: {}
+  # Example:
+  # environment:
+  #   ATLANTIS_GH_USER: "your-github-user"
+  #   ATLANTIS_GH_TOKEN: "your-github-token"
+  #   ATLANTIS_DISABLE_APPLY_ALL: "true"
 
-# Container command
-command: []
+  # Container command
+  command: []
 
-# Data storage (handled by our enhanced persistence above when enabled)
-dataStorage:
-  enabled: false
+  # Data storage (handled by our enhanced persistence above when enabled)
+  dataStorage:
+    enabled: false
 
-# Liveness probe
-livenessProbe:
-  enabled: true
-  periodSeconds: 60
-  initialDelaySeconds: 5
-  timeoutSeconds: 5
-  successThreshold: 1
-  failureThreshold: 5
-  scheme: HTTP
-  path: /healthz
+  # Liveness probe
+  livenessProbe:
+    enabled: true
+    periodSeconds: 60
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+    scheme: HTTP
+    path: /healthz
 
-# Readiness probe
-readinessProbe:
-  enabled: true
-  periodSeconds: 60
-  initialDelaySeconds: 5
-  timeoutSeconds: 5
-  successThreshold: 1
-  failureThreshold: 5
-  scheme: HTTP
-  path: /healthz
+  # Readiness probe
+  readinessProbe:
+    enabled: true
+    periodSeconds: 60
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+    scheme: HTTP
+    path: /healthz
 
-# Volume mounts
-volumeClaim: []
+  # Volume mounts
+  volumeClaim: []
 
-# Additional volumes
-extraVolumes: []
-extraVolumeMounts: []
+  # Additional volumes
+  extraVolumes: []
+  extraVolumeMounts: []
 
-# Init containers
-initContainers: []
+  # Init containers
+  initContainers: []
 
-# Extra containers
-extraContainers: []
+  # Extra containers
+  extraContainers: []
 
-# Stateful set configuration
-statefulSet:
-  enabled: false
+  # Stateful set configuration
+  statefulSet:
+    enabled: false
 
-# Disable default PDB from official chart (we provide enhanced version)
-disruptionBudget:
-  enabled: false
+  # Disable default PDB from official chart (we provide enhanced version)
+  disruptionBudget:
+    enabled: false
