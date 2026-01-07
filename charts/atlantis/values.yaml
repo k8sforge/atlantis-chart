@@ -104,10 +104,20 @@ atlantis:
 
   # GitHub authentication (Personal Access Token)
   # IMPORTANT: Replace these placeholder values with your actual credentials
-  github:
-    user: "test-user"
-    token: "ghp_test_token_placeholder_12345678901234567890"
-    secret: "test-webhook-secret-12345"
+  # github:
+  #   user: "test-user"
+  #   token: "ghp_test_token_placeholder_12345678901234567890"
+  #   secret: "test-webhook-secret-12345"
+
+  # githubApp:
+  #   id: "123456"
+  #   slug: "your-app-slug"
+  #   key: |
+  #     -----BEGIN RSA PRIVATE KEY-----
+  #     ... (your private key here)
+  #     -----END RSA PRIVATE KEY-----
+  #   secret: "your-webhook-secret"
+  #   installationId: "12345678"  # Optional: if app has multiple installations
 
   # Add any other official chart values here as needed:
   # orgAllowlist: "github.com/myorg/*"
