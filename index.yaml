@@ -3,6 +3,35 @@ entries:
   atlantis:
   - apiVersion: v2
     appVersion: latest
+    created: "2026-01-07T08:17:39.413627333Z"
+    dependencies:
+    - name: atlantis
+      repository: https://runatlantis.github.io/helm-charts
+      version: 5.24.1
+    description: Enhanced Atlantis Helm chart with Argo Rollouts, monitoring, and
+      HA features
+    digest: e188025622b7517c28eac4fa010cfbc1b327c2d0bbc93d0a0fae9e6438fb860c
+    home: https://github.com/k8sforge/atlantis-chart
+    icon: https://avatars.githubusercontent.com/u/32311288
+    keywords:
+    - atlantis
+    - terraform
+    - automation
+    - ci-cd
+    - argo-rollouts
+    - monitoring
+    maintainers:
+    - name: k8sforge
+    name: atlantis
+    sources:
+    - https://github.com/runatlantis/atlantis
+    - https://github.com/k8sforge/atlantis-chart
+    type: application
+    urls:
+    - https://github.com/k8sforge/atlantis-chart/releases/download/atlantis-0.1.9/atlantis-0.1.9.tgz
+    version: 0.1.9
+  - apiVersion: v2
+    appVersion: latest
     created: "2026-01-06T23:13:05.385379001Z"
     dependencies:
     - name: atlantis
@@ -262,4 +291,4 @@ entries:
     urls:
     - https://github.com/k8sforge/atlantis-chart/releases/download/atlantis-0.1.0/atlantis-0.1.0.tgz
     version: 0.1.0
-generated: "2026-01-06T23:13:05.385417152Z"
+generated: "2026-01-07T08:17:39.413669071Z"
