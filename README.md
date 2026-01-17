@@ -12,7 +12,6 @@ This is a **reusable Helm chart repository**. The chart is versioned and publish
 
 This chart wraps the official [Atlantis Helm chart](https://github.com/runatlantis/helm-charts) with sensible defaults and additional configurations including:
 
-- **Argo Rollouts support** - Blue-Green, Canary, and Rolling Update strategies
 - **Intelligent Storage** - EBS/EFS auto-selection based on replica count
 - **Configurable health checks** - Platform-agnostic health check configuration for ingress
 - **Prometheus monitoring** - ServiceMonitor for metrics scraping (optional)
@@ -85,7 +84,6 @@ helm install my-atlantis .
 - `kubectl` configured
 - Helm 3.x
 - **Official Atlantis Chart Repository** (automatically added as dependency)
-- Argo Rollouts controller (optional, for Blue-Green/Canary deployments)
 - Prometheus Operator (optional, for ServiceMonitor support)
 - Ingress controller (nginx, traefik, or platform-specific such as AWS ALB)
 
@@ -98,9 +96,6 @@ The following table lists the main configurable parameters:
 | Parameter                                                  | Description                  | Default                |
 | ---------------------------------------------------------- | ---------------------------- | ---------------------- |
 | `replicaCount`                                             | Number of replicas (wrapper) | `1`                    |
-| `deployment.type`                                          | Deployment type              | `deployment`           |
-| `deployment.strategy`                                      | Rollout strategy             | `blueGreen`            |
-| `deployment.autoPromotionEnabled`                          | Auto-promote on deployment   | `false`                |
 | `atlantis.image.repository`                                | Atlantis image repository    | `runatlantis/atlantis` |
 | `atlantis.image.tag`                                       | Atlantis image tag           | `latest`               |
 | `atlantis.replicaCount`                                    | Replicas (official chart)    | `1`                    |
@@ -350,102 +345,6 @@ kubectl create secret generic my-atlantis-secrets \
 
 ---
 
-## Deployment Strategies
-
-This chart supports three deployment types:
-
-### 1. Standard Kubernetes Deployment
-
-Use standard Kubernetes Deployment with rolling updates (no Argo Rollouts required):
-
-```yaml
-deployment:
-  type: deployment
-```
-
-**Benefits:**
-
-- No additional dependencies
-- Simple and straightforward
-- Standard Kubernetes rolling update behavior
-
-### 2. Argo Rollouts - Rolling Update
-
-Use Argo Rollouts with standard rolling update strategy:
-
-```yaml
-deployment:
-  type: rollout
-  strategy: rollingUpdate
-  rollingUpdate:
-    maxSurge: "25%"
-    maxUnavailable: "25%"
-```
-
-**Benefits:**
-
-- Enhanced rollout management
-- Better observability
-- Rollback capabilities
-
-### 3. Argo Rollouts - Blue-Green
-
-Use Argo Rollouts with blue-green deployment:
-
-```yaml
-deployment:
-  type: rollout
-  strategy: blueGreen
-  autoPromotionEnabled: false
-  scaleDownDelaySeconds: 30
-```
-
-**Features:**
-
-- **Active Service** receives production traffic
-- **Preview Service** exposes the new version
-- **Manual promotion** by default (set `autoPromotionEnabled: true` for automatic)
-
-**Promote a rollout:**
-
-```bash
-kubectl argo rollouts promote <release-name>-atlantis -n <namespace>
-```
-
-### 4. Argo Rollouts - Canary
-
-Use Argo Rollouts with canary deployment:
-
-```yaml
-deployment:
-  type: rollout
-  strategy: canary
-  canary:
-    steps:
-      - setWeight: 20
-      - pause: {}
-      - setWeight: 40
-      - pause: { duration: 10s }
-      - setWeight: 60
-      - pause: { duration: 10s }
-      - setWeight: 80
-      - pause: { duration: 10s }
-```
-
-**Features:**
-
-- Gradual traffic shift
-- Configurable steps and pauses
-- Optional analysis for automated promotion
-
-**Check rollout status:**
-
-```bash
-kubectl argo rollouts get rollout <release-name>-atlantis -n <namespace>
-```
-
----
-
 ## Using This Chart from Another Repository (Repo B Pattern)
 
 ### Example dependency
@@ -533,12 +432,6 @@ kubectl get svc -l app.kubernetes.io/name=atlantis
 ```bash
 kubectl get ingress -l app.kubernetes.io/name=atlantis
 kubectl describe ingress <release-name>-atlantis-ingress
-```
-
-### Check Argo Rollouts
-
-```bash
-kubectl argo rollouts get rollout <release-name>-atlantis
 ```
 
 ### Check ServiceMonitor

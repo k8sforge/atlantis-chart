@@ -8,7 +8,6 @@ This document provides practical examples for deploying Atlantis using this wrap
 - [Installation Methods](#installation-methods)
 - [Basic Configuration](#basic-configuration)
 - [Authentication](#authentication)
-- [Advanced Deployment Strategies](#advanced-deployment-strategies)
 - [Enterprise Features](#enterprise-features)
 - [Production Examples](#production-examples)
 - [Troubleshooting](#troubleshooting)
@@ -193,139 +192,6 @@ atlantisUrl: "https://atlantis.example.com"
   - Issue comment
   - Pull request review
   - Pull request review comment
-
-## Advanced Deployment Strategies
-
-All deployment strategies require Argo Rollouts to be installed.
-
-### Example 6: Blue-Green Deployment
-
-Zero-downtime deployments with instant rollback capability.
-
-```yaml
-# bluegreen-values.yaml
-orgAllowlist: "github.com/myorg/*"
-replicaCount: 2
-
-github:
-  user: "atlantis-bot"
-  token: "ghp_xxxxxxxxxxxxx"
-  secret: "webhook-secret"
-
-# Enable Blue-Green deployment
-enhancedDeployment:
-  enabled: true
-  type: rollout
-  strategy: blueGreen
-  autoPromotionEnabled: false  # Manual approval required
-  scaleDownDelaySeconds: 30    # Keep old version for 30s
-
-ingress:
-  enabled: true
-  ingressClassName: "alb"
-  host: "atlantis.example.com"
-```
-
-**Promotion workflow:**
-
-```bash
-# Deploy new version
-helm upgrade atlantis k8sforge/atlantis -f bluegreen-values.yaml
-
-# Verify preview environment (if configured)
-kubectl get svc atlantis-preview
-
-# Promote when ready
-kubectl argo rollouts promote atlantis
-
-# Rollback if needed
-kubectl argo rollouts undo atlantis
-```
-
-### Example 7: Canary Deployment
-
-Gradual traffic shifting with automated rollout steps.
-
-```yaml
-# canary-values.yaml
-orgAllowlist: "github.com/myorg/*"
-replicaCount: 4
-
-github:
-  user: "atlantis-bot"
-  token: "ghp_xxxxxxxxxxxxx"
-  secret: "webhook-secret"
-
-# Enable Canary deployment
-enhancedDeployment:
-  enabled: true
-  type: rollout
-  strategy: canary
-  canary:
-    steps:
-      - setWeight: 25    # 25% traffic to new version
-      - pause:
-          duration: 5m   # Wait 5 minutes
-      - setWeight: 50    # 50% traffic
-      - pause:
-          duration: 5m
-      - setWeight: 75    # 75% traffic
-      - pause:
-          duration: 5m
-      # 100% automatic after final pause
-
-ingress:
-  enabled: true
-  ingressClassName: "nginx"
-  host: "atlantis.example.com"
-```
-
-**Traffic routing options:**
-
-For AWS ALB:
-
-```yaml
-enhancedDeployment:
-  canary:
-    trafficRouting:
-      alb:
-        ingress: atlantis-ingress
-        servicePort: 4141
-```
-
-For NGINX:
-
-```yaml
-enhancedDeployment:
-  canary:
-    trafficRouting:
-      nginx:
-        stableIngress: atlantis-ingress
-```
-
-### Example 8: Rolling Update via Argo Rollouts
-
-Standard rolling update managed by Argo Rollouts.
-
-```yaml
-# rolling-update-values.yaml
-orgAllowlist: "github.com/myorg/*"
-replicaCount: 3
-
-github:
-  user: "atlantis-bot"
-  token: "ghp_xxxxxxxxxxxxx"
-  secret: "webhook-secret"
-
-# Enable Rolling Update via Argo Rollouts
-enhancedDeployment:
-  enabled: true
-  type: rollout
-  strategy: rollingUpdate
-  rollingUpdate:
-    maxSurge: "25%"       # Max pods above desired count
-    maxUnavailable: "25%"  # Max pods unavailable during update
-```
 
 ## Enterprise Features
 
@@ -514,14 +380,6 @@ affinity:
 
 # --- ENHANCEMENT FEATURES ---
 
-# Blue-Green Deployment
-enhancedDeployment:
-  enabled: true
-  type: rollout
-  strategy: blueGreen
-  autoPromotionEnabled: false
-  scaleDownDelaySeconds: 30
-
 # Persistent Storage (EFS for multi-replica)
 enhancedStorage:
   enabled: true
@@ -609,14 +467,6 @@ tolerations:
     value: "atlantis"
     effect: "NoSchedule"
 
-# Enhanced deployment with Blue-Green
-enhancedDeployment:
-  enabled: true
-  type: rollout
-  strategy: blueGreen
-  autoPromotionEnabled: false
-  scaleDownDelaySeconds: 30
-
 # EFS storage for multi-replica
 enhancedStorage:
   enabled: true
@@ -650,20 +500,6 @@ cd ../..
 
 # Try install again
 helm install atlantis ./charts/atlantis -f values.yaml
-```
-
-### Issue: Rollout resource not working
-
-**Error:** `error: unable to recognize "rollout.yaml": no matches for kind "Rollout"`
-
-**Solution:** Install Argo Rollouts
-
-```bash
-kubectl create namespace argo-rollouts
-kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
-
-# Verify installation
-kubectl get crd rollouts.argoproj.io
 ```
 
 ### Issue: ServiceMonitor not created
@@ -716,21 +552,6 @@ atlantis:
 orgAllowlist: "github.com/myorg/*"
 ```
 
-### Issue: Both Deployment and Rollout created
-
-**Symptom:** Duplicate pods or resources
-
-**Solution:** When using `enhancedDeployment.enabled=true`, the official chart's StatefulSet/Deployment is still created. This is intentional - set `statefulset.enabled=false` in official chart values if needed.
-
-```yaml
-enhancedDeployment:
-  enabled: true
-
-# Disable official chart's statefulset if needed
-statefulset:
-  enabled: false
-```
-
 ### Debug Commands
 
 ```bash
@@ -743,10 +564,6 @@ helm get values atlantis
 # Check generated manifest
 helm get manifest atlantis
 
-# View Rollout status (if using Argo Rollouts)
-kubectl argo rollouts get rollout atlantis
-kubectl argo rollouts status atlantis
-
 # Check logs
 kubectl logs -l app.kubernetes.io/name=atlantis
 
@@ -758,5 +575,4 @@ kubectl port-forward svc/atlantis 4141:4141
 
 - [Official Atlantis Documentation](https://www.runatlantis.io/)
 - [Official Chart Values Reference](https://github.com/runatlantis/helm-charts/tree/main/charts/atlantis)
-- [Argo Rollouts Documentation](https://argo-rollouts.readthedocs.io/)
 - [Chart Repository](https://github.com/k8sforge/atlantis-chart)
