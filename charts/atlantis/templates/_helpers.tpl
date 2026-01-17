@@ -60,3 +60,28 @@ Since we're a wrapper, we reference the service account created by the official 
 {{- define "atlantis.serviceAccountName" -}}
 {{- include "atlantis.fullname" . }}
 {{- end }}
+
+{{/*
+Generate environmentSecrets configuration for atlantis when githubAppSecrets is enabled
+*/}}
+{{- define "atlantis.githubAppSecrets.envSecrets" -}}
+{{- if .Values.githubAppSecrets.enabled }}
+- name: {{ .Values.githubAppSecrets.secretName }}
+  keys:
+    - {{ .Values.githubAppSecrets.keys.appId | default "value" }}
+    - {{ .Values.githubAppSecrets.keys.appKey | default "value" }}
+    - {{ .Values.githubAppSecrets.keys.webhookSecret | default "value" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Generate environment variable mappings for GitHub App credentials
+*/}}
+{{- define "atlantis.githubAppSecrets.env" -}}
+{{- if .Values.githubAppSecrets.enabled }}
+{{- $keys := .Values.githubAppSecrets.keys }}
+ATLANTIS_GH_APP_ID: ${{ $keys.appId | default "value" }}
+ATLANTIS_GH_APP_KEY: ${{ $keys.appKey | default "value" }}
+ATLANTIS_GH_WEBHOOK_SECRET: ${{ $keys.webhookSecret | default "value" }}
+{{- end }}
+{{- end }}

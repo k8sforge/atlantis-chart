@@ -54,6 +54,17 @@ enhancedHA:
     minAvailable: 1 # Minimum pods that must remain available
     # maxUnavailable: 1  # Alternative: maximum pods that can be unavailable
 
+# GitHub App Secrets Support
+# When enabled, configures atlantis.environmentSecrets and atlantis.environment
+# Users only need to specify the secret name
+githubAppSecrets:
+  enabled: false
+  secretName: ""  # Name of Kubernetes secret containing GitHub App credentials
+  keys:
+    appId: "value"          # Key name in secret for App ID
+    appKey: "value"        # Key name in secret for private key
+    webhookSecret: "value" # Key name in secret for webhook secret
+
 ################################################################
 # OFFICIAL ATLANTIS CHART VALUES (Sub-Chart Configuration)
 ################################################################
