@@ -1,8 +1,8 @@
 apiVersion: v2
 name: atlantis
-description: Enhanced Atlantis Helm chart with Argo Rollouts, monitoring, and HA features
+description: Enhanced Atlantis Helm chart with monitoring and HA features
 type: application
-version: 0.1.9
+version: 0.2.0
 appVersion: "latest"
 icon: https://avatars.githubusercontent.com/u/32311288
 keywords:
@@ -10,7 +10,6 @@ keywords:
   - terraform
   - automation
   - ci-cd
-  - argo-rollouts
   - monitoring
 maintainers:
   - name: k8sforge

@@ -14,40 +14,10 @@
 # ENHANCEMENT FEATURES (disabled by default)
 #############################################
 
-# Enhanced Deployment with Argo Rollouts
-# When enabled, replaces standard Deployment with Rollout for advanced strategies
-enhancedDeployment:
-  enabled: false  # Set to true to use Argo Rollouts instead of standard Deployment
-  type: rollout   # Type of rollout resource (always "rollout" when enabled)
-  strategy: blueGreen  # Strategy: "rollingUpdate", "blueGreen", or "canary"
-
-  # Rolling update configuration (for strategy: rollingUpdate)
-  rollingUpdate:
-    maxSurge: "25%"
-    maxUnavailable: "25%"
-
-  # Blue-Green deployment configuration (for strategy: blueGreen)
-  autoPromotionEnabled: false
-  scaleDownDelaySeconds: 30
-
-  # Canary deployment configuration (for strategy: canary)
-  canary:
-    steps:
-      - setWeight: 20
-      - pause: {}
-      - setWeight: 40
-      - pause: { duration: 10s }
-      - setWeight: 60
-      - pause: { duration: 10s }
-      - setWeight: 80
-      - pause: { duration: 10s }
-    analysis: {}
-    trafficRouting: {}
-
 # Enhanced Storage with Smart EBS/EFS Selection
 # When enabled, provides intelligent storage selection based on replica count
 enhancedStorage:
-  enabled: false  # Set to true to use enhanced PVC with EBS/EFS auto-selection
+  enabled: false # Set to true to use enhanced PVC with EBS/EFS auto-selection
 
   # EBS configuration (automatically selected when atlantis.replicaCount == 1)
   ebs:
@@ -60,16 +30,16 @@ enhancedStorage:
     size: 50Gi
 
   # Manual overrides (optional - disables auto-selection)
-  storageClass: ""  # Override: specify exact storage class
-  size: ""          # Override: specify exact size
-  accessModes: []   # Override: specify exact access modes
+  storageClass: "" # Override: specify exact storage class
+  size: "" # Override: specify exact size
+  accessModes: [] # Override: specify exact access modes
   existingClaim: "" # Use existing PVC instead of creating new one
 
 # Enhanced Monitoring with Prometheus ServiceMonitor
 # When enabled, creates ServiceMonitor resource for Prometheus metrics scraping
 enhancedMonitoring:
   serviceMonitor:
-    enabled: false  # Set to true to create ServiceMonitor for Prometheus
+    enabled: false # Set to true to create ServiceMonitor for Prometheus
     interval: "30s"
     scrapeTimeout: "10s"
     labels: {}
@@ -80,8 +50,8 @@ enhancedMonitoring:
 # When enabled, ensures minimum availability during voluntary disruptions
 enhancedHA:
   podDisruptionBudget:
-    enabled: false  # Set to true to create PodDisruptionBudget
-    minAvailable: 1  # Minimum pods that must remain available
+    enabled: false # Set to true to create PodDisruptionBudget
+    minAvailable: 1 # Minimum pods that must remain available
     # maxUnavailable: 1  # Alternative: maximum pods that can be unavailable
 
 ################################################################
