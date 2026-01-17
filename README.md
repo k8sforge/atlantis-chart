@@ -345,6 +345,67 @@ kubectl create secret generic my-atlantis-secrets \
 
 ---
 
+## GitHub App Secrets Support
+
+The wrapper chart supports injecting GitHub App credentials from Kubernetes secrets using the official chart's `environmentSecrets` feature. This allows you to use secret management operators (e.g., Bitwarden Secrets Manager) without exposing secrets in Helm values.
+
+### Configuring GitHub App Secrets
+
+1. **Enable `githubAppSecrets` in your values:**
+
+```yaml
+githubAppSecrets:
+  enabled: true
+  secretName: "dev-github-app-secrets"  # Your Kubernetes secret name
+  keys:
+    appId: "value"          # Key in secret for App ID
+    appKey: "value"         # Key in secret for private key
+    webhookSecret: "value"  # Key in secret for webhook secret
+```
+
+1. **Configure `atlantis.environmentSecrets` and `atlantis.environment`:**
+
+Since Helm doesn't support dynamic value merging, you need to set these in your `atlantis:` section:
+
+```yaml
+atlantis:
+  environmentSecrets:
+    - name: "dev-github-app-secrets"  # Must match githubAppSecrets.secretName
+      keys:
+        - "value"  # Must match githubAppSecrets.keys.appId
+        - "value"  # Must match githubAppSecrets.keys.appKey
+        - "value"  # Must match githubAppSecrets.keys.webhookSecret
+
+  environment:
+    ATLANTIS_GH_APP_ID: "$value"           # References key from secret
+    ATLANTIS_GH_APP_KEY: "$value"           # References key from secret
+    ATLANTIS_GH_WEBHOOK_SECRET: "$value"    # References key from secret
+```
+
+**Note**: The `$` prefix in environment variable values references keys from `environmentSecrets`. The key names must match the keys defined in your Kubernetes secret.
+
+### Helper Templates
+
+The chart provides helper template functions you can use:
+
+- `{{ include "atlantis.githubAppSecrets.envSecrets" . }}` - Generates `environmentSecrets` configuration
+- `{{ include "atlantis.githubAppSecrets.env" . }}` - Generates `environment` variable mappings
+
+However, these cannot be used directly in `values.yaml` (Helm doesn't support template syntax in values files). They are provided for reference or if you're generating values programmatically.
+
+### Migration from Manual Patching
+
+If you're currently using Terraform or kubectl to patch the StatefulSet:
+
+1. Enable `githubAppSecrets` in Helm values
+2. Configure `atlantis.environmentSecrets` and `atlantis.environment` as shown above
+3. Remove your `kubectl_manifest.atlantis_env_patch` resource
+4. Remove `ignoreDifferences` for StatefulSet env from ArgoCD Application
+
+This approach uses the official chart's built-in features - no patches required.
+
+---
+
 ## Using This Chart from Another Repository (Repo B Pattern)
 
 ### Example dependency

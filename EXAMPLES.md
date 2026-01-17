@@ -193,6 +193,58 @@ atlantisUrl: "https://atlantis.example.com"
   - Pull request review
   - Pull request review comment
 
+---
+
+### Example 5b: GitHub App with Secrets (Bitwarden/External Secrets)
+
+Use GitHub App credentials from Kubernetes secrets synced by secret management operators. This approach avoids exposing secrets in Helm values.
+
+**Step 1: Configure `githubAppSecrets` in wrapper chart values:**
+
+```yaml
+githubAppSecrets:
+  enabled: true
+  secretName: "dev-github-app-secrets"
+  keys:
+    appId: "dev-github-app-id"
+    appKey: "dev-github-app-private-key"
+    webhookSecret: "dev-github-webhook-secret"
+```
+
+**Step 2: Configure `atlantis.environmentSecrets` and `atlantis.environment`:**
+
+```yaml
+atlantis:
+  # Other atlantis values...
+  orgAllowlist: "github.com/myorg/*"
+  atlantisUrl: "https://atlantis.example.com"
+
+  # GitHub App credentials from Kubernetes secrets
+  environmentSecrets:
+    - name: "dev-github-app-secrets"
+      keys:
+        - "dev-github-app-id"
+        - "dev-github-app-private-key"
+        - "dev-github-webhook-secret"
+
+  environment:
+    ATLANTIS_GH_APP_ID: "$dev-github-app-id"
+    ATLANTIS_GH_APP_KEY: "$dev-github-app-private-key"
+    ATLANTIS_GH_WEBHOOK_SECRET: "$dev-github-webhook-secret"
+
+  # Leave githubApp empty - credentials come from environment variables
+  githubApp: {}
+```
+
+**Note**: The `$` prefix in environment variable values references keys from `environmentSecrets`. Atlantis will read GitHub App credentials from these environment variables at runtime.
+
+**Benefits:**
+
+- No secrets in Helm values files
+- Works with secret management operators (Bitwarden, External Secrets, etc.)
+- Uses official chart's built-in `environmentSecrets` feature
+- No need for post-deployment StatefulSet patching
+
 ## Enterprise Features
 
 ### Example 9: Persistent Storage with EBS (Single Replica)
